@@ -1,0 +1,18 @@
+<div class="user-actions-container">
+  <div class="control-panel">
+    <h3>Действия пользователей</h3>
+    <p>История действий пользователей в системе</p>
+  </div>
+  
+  <div class="actions-list">
+    <div class="action-item" *ngFor="let action of userActions">
+      <div class="action-header">
+        <span class="user-name">{{ action.user }}</span>
+        <span class="timestamp">{{ action.timestamp }}</span>
+      </div>
+      <div class="action-description">
+        {{ action.action }}
+      </div>
+    </div>
+  </div>
+</div>

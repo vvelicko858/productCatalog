@@ -1,0 +1,227 @@
+<div class="products-list-container">
+  <div class="control-panel">
+    <form [formGroup]="searchForm" class="search-section">
+      <input
+        type="text"
+        placeholder="Поиск по названию продукта..."
+        class="search-input"
+        formControlName="search">
+      <select class="category-select" formControlName="category">
+        <option value="">Все категории</option>
+        <option *ngFor="let category of categories" [value]="category">
+          {{ category }}
+        </option>
+      </select>
+    </form>
+
+    <div class="action-buttons">
+      <button class="btn btn-add-product" (click)="addProduct()">
+        ➕ Добавить продукт
+      </button>
+      <button class="btn btn-add-category" (click)="addCategory()">
+       ️ Добавить категорию
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-indicator">
+    <div class="spinner"></div>
+    <p>Загрузка продуктов...</p>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    <p>{{ error }}</p>
+    <button class="btn btn-retry" (click)="loadProducts()">Повторить</button>
+  </div>
+
+  <div class="table-container" *ngIf="!isLoading && !error">
+    <div class="table-header">
+      <h3>Найдено продуктов: {{ filteredProducts.length }}</h3>
+    </div>
+
+    <table class="products-table" *ngIf="filteredProducts.length > 0">
+      <thead>
+        <tr>
+          <th>Наименование продукта</th>
+          <th>Категория</th>
+          <th>Описание</th>
+          <th>Стоимость в рублях</th>
+          <th>Примечание общее</th>
+          <th>Примечание специальное</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let product of filteredProducts"
+            [class.selected]="selectedProduct?.id === product.id"
+            (click)="selectProduct(product)">
+          <td>{{ product.name }}</td>
+          <td>{{ product.category }}</td>
+          <td>{{ product.description }}</td>
+          <td>{{ product.price }}</td>
+          <td>{{ product.noteGeneral || '-' }}</td>
+          <td>{{ product.noteSpecial || '-' }}</td>
+          <td>
+            <button class="btn-edit" (click)="editProduct(product)">✏️</button>
+            <button class="btn-delete" (click)="deleteProduct(product)">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="filteredProducts.length === 0 && !isLoading" class="no-products">
+      <p>Продукты не найдены</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showAddProductModal" (click)="closeAddProductModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Добавить новый продукт</h3>
+      <button class="modal-close" (click)="closeAddProductModal()">×</button>
+    </div>
+
+    <form [formGroup]="addProductForm" (ngSubmit)="onSubmitAddProduct()" class="add-product-form">
+      <div class="form-group">
+        <label for="name">Название продукта *</label>
+        <input
+          type="text"
+          id="name"
+          formControlName="name"
+          placeholder="Введите название продукта"
+          [class.error]="nameField?.invalid && nameField?.touched">
+        <div class="error-message" *ngIf="nameField?.invalid && nameField?.touched">
+          <span *ngIf="nameField?.errors?.['required']">Название обязательно</span>
+          <span *ngIf="nameField?.errors?.['minlength']">Минимум 2 символа</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="category">Категория *</label>
+        <select id="category" formControlName="category" [class.error]="categoryField?.invalid && categoryField?.touched">
+          <option value="">Выберите категорию</option>
+          <option *ngFor="let category of categories" [value]="category">
+            {{ category }}
+          </option>
+        </select>
+        <div class="error-message" *ngIf="categoryField?.invalid && categoryField?.touched">
+          <span *ngIf="categoryField?.errors?.['required']">Категория обязательна</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Описание *</label>
+        <textarea
+          id="description"
+          formControlName="description"
+          placeholder="Введите описание продукта"
+          rows="3"
+          [class.error]="descriptionField?.invalid && descriptionField?.touched"></textarea>
+        <div class="error-message" *ngIf="descriptionField?.invalid && descriptionField?.touched">
+          <span *ngIf="descriptionField?.errors?.['required']">Описание обязательно</span>
+          <span *ngIf="descriptionField?.errors?.['minlength']">Минимум 5 символов</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="price">Стоимость в рублях *</label>
+        <input
+          type="text"
+          id="price"
+          formControlName="price"
+          placeholder="0.000"
+          [class.error]="priceField?.invalid && priceField?.touched">
+        <div class="error-message" *ngIf="priceField?.invalid && priceField?.touched">
+          <span *ngIf="priceField?.errors?.['required']">Стоимость обязательна</span>
+          <span *ngIf="priceField?.errors?.['pattern']">Неверный формат цены</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="noteGeneral">Примечание общее</label>
+        <input
+          type="text"
+          id="noteGeneral"
+          formControlName="noteGeneral"
+          placeholder="Введите общее примечание">
+      </div>
+
+      <div class="form-group">
+        <label for="noteSpecial">Примечание специальное</label>
+        <input
+          type="text"
+          id="noteSpecial"
+          formControlName="noteSpecial"
+          placeholder="Введите специальное примечание">
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-cancel" (click)="closeAddProductModal()">
+          Отмена
+        </button>
+        <button type="submit" class="btn btn-submit" [disabled]="isAddingProduct">
+          <span *ngIf="!isAddingProduct">Добавить продукт</span>
+          <span *ngIf="isAddingProduct">Добавление...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showAddCategoryModal" (click)="closeAddCategoryModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Добавить новую категорию</h3>
+      <button class="modal-close" (click)="closeAddCategoryModal()">×</button>
+    </div>
+
+    <form [formGroup]="addCategoryForm" (ngSubmit)="onSubmitAddCategory()" class="add-category-form">
+      <div class="form-group">
+        <label for="categoryName">Название категории *</label>
+        <input
+          type="text"
+          id="categoryName"
+          formControlName="name"
+          placeholder="Введите название категории"
+          [class.error]="categoryNameField?.invalid && categoryNameField?.touched">
+        <div class="error-message" *ngIf="categoryNameField?.invalid && categoryNameField?.touched">
+          <span *ngIf="categoryNameField?.errors?.['required']">Название обязательно</span>
+          <span *ngIf="categoryNameField?.errors?.['minlength']">Минимум 2 символа</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="categoryDescription">Описание категории *</label>
+        <textarea
+          id="categoryDescription"
+          formControlName="description"
+          placeholder="Введите описание категории"
+          rows="3"
+          [class.error]="categoryDescriptionField?.invalid && categoryDescriptionField?.touched"></textarea>
+        <div class="error-message" *ngIf="categoryDescriptionField?.invalid && categoryDescriptionField?.touched">
+          <span *ngIf="categoryDescriptionField?.errors?.['required']">Описание обязательно</span>
+          <span *ngIf="categoryDescriptionField?.errors?.['minlength']">Минимум 5 символов</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="isActive">
+          <span class="checkmark"></span>
+          Активная категория
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-cancel" (click)="closeAddCategoryModal()">
+          Отмена
+        </button>
+        <button type="submit" class="btn btn-submit" [disabled]="isAddingCategory">
+          <span *ngIf="!isAddingCategory">Добавить категорию</span>
+          <span *ngIf="isAddingCategory">Добавление...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

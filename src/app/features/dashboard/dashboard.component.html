@@ -1,0 +1,43 @@
+<div class="dashboard-container">
+  <div *ngIf="!isLoading">
+    <header class="dashboard-header">
+      <div class="user-info">
+        <h1>Добро пожаловать, {{ currentUser?.username || 'Пользователь' }}!</h1>
+        <p class="user-role">{{ getUserRoleDisplayName(currentUser?.role || 'Simple') }}</p>
+        <p class="user-email">{{ currentUser?.email }}</p>
+      </div>
+      <button class="logout-btn" (click)="logout()">Выйти</button>
+    </header>
+
+    <section class="dashboard-actions">
+      <button
+        class="action-btn"
+        [class.active]="activeAction === 'products'"
+        (click)="setActiveAction('products')">
+        Каталог продуктов
+      </button>
+      <button
+        class="action-btn"
+        [class.active]="activeAction === 'categories'"
+        (click)="setActiveAction('categories')">
+        Справочник категорий
+      </button>
+      <button
+        class="action-btn"
+        [class.active]="activeAction === 'user-actions'"
+        (click)="setActiveAction('user-actions')">
+        Действия пользователей
+      </button>
+      <button
+        class="action-btn"
+        [class.active]="activeAction === 'users'"
+        (click)="setActiveAction('users')">
+        Список пользователей
+      </button>
+    </section>
+
+    <div class="dashboard-content">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

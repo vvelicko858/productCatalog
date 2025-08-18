@@ -1,0 +1,555 @@
+/* register.component.scss */
+
+// Variables
+$primary-bg: linear-gradient(135deg, #f8f4f0 0%, #f1ede8 25%, #ebe6e0 50%, #e5dfd8 75%, #dfd8d0 100%);
+$glass-bg: rgba(255, 255, 255, 0.25);
+$glass-border: rgba(255, 255, 255, 0.3);
+$accent-gradient: linear-gradient(135deg, #d4c4b0 0%, #c9b8a3 50%, #bead96 100%);
+
+$text-primary: #6b5b4d;
+$text-secondary: #8a7a6d;
+$text-muted: #a89684;
+$text-input: #4a3f36;
+
+$border-color: rgba(180, 165, 150, 0.2);
+$focus-color: #c9b8a3;
+$error-color: #d97066;
+$success-color: #7cb342;
+
+// Mixins
+@mixin glass-morphism($opacity: 0.25, $blur: 40px) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+}
+
+@mixin smooth-transition($properties: all, $duration: 0.3s, $easing: cubic-bezier(0.4, 0, 0.2, 1)) {
+  transition: $properties $duration $easing;
+}
+
+@mixin hover-lift($translate: -2px) {
+  transform: translateY($translate);
+}
+
+// Base styles
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:host {
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  background: $primary-bg;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle,
+      rgba(240, 235, 230, 0.3) 0%,
+      rgba(235, 228, 220, 0.2) 30%,
+      rgba(230, 221, 210, 0.1) 60%,
+      transparent 100%);
+    animation: float 20s ease-in-out infinite;
+    z-index: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0px, 0px) rotate(0deg);
+  }
+  33% {
+    transform: translate(30px, -30px) rotate(120deg);
+  }
+  66% {
+    transform: translate(-20px, 20px) rotate(240deg);
+  }
+}
+
+.login-container {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.glass-card {
+  @include glass-morphism(0.25, 40px);
+  border: 1px solid $glass-border;
+  border-radius: 32px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  position: relative;
+  overflow: hidden;
+  animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.6),
+      transparent);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Logo section
+.logo-section {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.logo-icon {
+  width: 72px;
+  height: 72px;
+  background: $accent-gradient;
+  border-radius: 20px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 8px 24px rgba(201, 184, 163, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  color: white;
+  @include smooth-transition(transform);
+
+  &:hover {
+    transform: scale(1.05) rotateY(10deg);
+  }
+
+  svg {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  }
+}
+
+h1 {
+  color: $text-primary;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 0 0 8px;
+  background: linear-gradient(135deg, $text-primary 0%, lighten($text-primary, 10%) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: $text-secondary;
+  font-size: 16px;
+  font-weight: 400;
+  opacity: 0.8;
+  line-height: 1.5;
+}
+
+// Form styles
+.login-form {
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 24px;
+  position: relative;
+
+  label {
+    display: block;
+    color: $text-primary;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.2px;
+  }
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .input-icon {
+    position: absolute;
+    left: 16px;
+    color: $text-muted;
+    z-index: 2;
+    @include smooth-transition(color);
+
+    svg {
+      display: block;
+    }
+  }
+
+  input {
+    width: 100%;
+    padding: 16px 20px 16px 52px;
+    border: 1.5px solid $border-color;
+    border-radius: 16px;
+    @include glass-morphism(0.4, 20px);
+    color: $text-input;
+    font-size: 16px;
+    font-weight: 400;
+    @include smooth-transition(all, 0.3s);
+    -webkit-appearance: none;
+    appearance: none;
+    background-clip: padding-box;
+
+    &::placeholder {
+      color: $text-muted;
+      opacity: 1;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $focus-color;
+      background: rgba(255, 255, 255, 0.6);
+      box-shadow:
+        0 0 0 4px rgba(201, 184, 163, 0.1),
+        0 4px 16px rgba(0, 0, 0, 0.08);
+      transform: translateY(-1px);
+
+      + .input-icon,
+      ~ .input-icon {
+        color: $focus-color;
+      }
+    }
+
+    &:valid {
+      border-color: $success-color;
+    }
+
+    &:invalid:not(:placeholder-shown) {
+      border-color: $error-color;
+    }
+  }
+
+  .toggle-password {
+    position: absolute;
+    right: 16px;
+    background: none;
+    border: none;
+    color: $text-muted;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    @include smooth-transition(all);
+
+    &:hover {
+      color: $text-primary;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    &:focus {
+      outline: 2px solid $focus-color;
+      outline-offset: 2px;
+    }
+  }
+}
+
+// Buttons
+.button-group {
+  margin-bottom: 32px;
+}
+
+.glass-button {
+  width: 100%;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  @include smooth-transition(all);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-decoration: none;
+
+  &.primary {
+    background: $accent-gradient;
+    color: white;
+    box-shadow:
+      0 8px 24px rgba(201, 184, 163, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+    .button-loader {
+      display: none;
+    }
+
+    &.loading {
+      .button-text {
+        opacity: 0;
+      }
+
+      .button-loader {
+        display: block;
+      }
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent);
+      transition: left 0.6s;
+    }
+
+    &:hover:not(:disabled) {
+      @include hover-lift(-2px);
+      box-shadow:
+        0 12px 32px rgba(201, 184, 163, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+
+      &::before {
+        left: 100%;
+      }
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow:
+        0 4px 16px rgba(201, 184, 163, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+  }
+
+  &.social {
+    @include glass-morphism(0.3, 20px);
+    border: 1.5px solid $border-color;
+    color: $text-primary;
+    font-weight: 500;
+    margin-bottom: 12px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.5);
+      border-color: $focus-color;
+      @include hover-lift(-1px);
+    }
+
+    &.google:hover {
+      border-color: #4285F4;
+    }
+
+    &.github:hover {
+      border-color: #333;
+      color: #333;
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Signup prompt
+.signup {
+  text-align: center;
+
+  p {
+    color: $text-secondary;
+    font-size: 15px;
+    margin: 0;
+  }
+
+  .signup-link {
+    color: $focus-color;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    @include smooth-transition(color);
+
+    &:hover {
+      color: darken($focus-color, 10%);
+      text-decoration: underline;
+    }
+
+    &:focus {
+      outline: 2px solid $focus-color;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+  }
+}
+
+/* ----------------- Responsive ----------------- */
+
+/* Very small screens (phones <380px) */
+@media (max-width: 380px) {
+  .glass-card {
+    padding: 24px 20px;
+  }
+
+  .logo-section {
+    margin-bottom: 32px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+  }
+}
+
+/* Small phones (≤480px) */
+@media (max-width: 480px) {
+  .glass-card {
+    padding: 32px 24px;
+    border-radius: 24px;
+    margin: 16px;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+
+  .logo-icon {
+    width: 64px;
+    height: 64px;
+
+    svg {
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  .input-wrapper input {
+    padding: 14px 16px 14px 48px;
+    font-size: 16px;
+  }
+
+  .input-wrapper .input-icon {
+    left: 14px;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .glass-button {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+}
+
+/* Tablets (≤768px) */
+@media (max-width: 768px) {
+  .glass-card {
+    max-width: 380px;
+    padding: 36px 28px;
+  }
+
+  h1 {
+    font-size: 26px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+  }
+
+  .glass-button {
+    font-size: 15px;
+    padding: 14px 20px;
+  }
+}
+
+/* Small desktops (≤1024px) */
+@media (max-width: 1024px) {
+  .glass-card {
+    max-width: 420px;
+  }
+}
+
+/* Large desktops (≥1200px) */
+@media (min-width: 1200px) {
+  .login-container {
+    padding: 40px;
+  }
+
+  .glass-card {
+    max-width: 480px;
+    padding: 56px 48px;
+  }
+
+  h1 {
+    font-size: 36px;
+  }
+
+  .subtitle {
+    font-size: 18px;
+  }
+
+  .glass-button {
+    font-size: 17px;
+    padding: 18px 26px;
+  }
+}

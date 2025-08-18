@@ -1,0 +1,327 @@
+
+.dashboard-container {
+  margin: 0 auto;
+  padding: 0 20px 0 20px;
+  background: linear-gradient(135deg, #f8f4f0 0%, #f1ede8 25%, #ebe6e0 50%, #e5dfd8 75%, #dfd8d0 100%);
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  position: relative;
+  top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(40px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+  .user-info {
+    h1 {
+      margin: 0 0 10px 0;
+      color: #6b5b4d;
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6b5b4d 0%, #8a7a6d 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .user-role {
+      margin: 5px 0;
+      color: #8a7a6d;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .user-email {
+      margin: 5px 0 0 0;
+      color: #a89684;
+      font-size: 1rem;
+    }
+  }
+}
+
+.logout-btn {
+  background: linear-gradient(135deg, #d97066 0%, #c25a50 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(217, 112, 102, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(217, 112, 102, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+.dashboard-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px 30px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(40px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+
+  .action-btn {
+    flex: 1;
+    padding: 14px 0;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    max-width: 300px;
+    color: #6b5b4d;
+    background: linear-gradient(135deg, #fdfbf9 0%, #f6f2ee 100%);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(107, 91, 77, 0.1);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(107, 91, 77, 0.2);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &.active {
+      background: linear-gradient(135deg, #a89684 0%, #8a7a6d 100%);
+      color: white;
+      box-shadow: 0 6px 20px rgba(138, 122, 109, 0.4);
+    }
+  }
+}
+
+.dashboard-content {
+  margin-top: 30px;
+}
+
+.products-section {
+  .control-panel {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .search-section {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .search-input,
+  .category-select,
+  .price-select {
+    padding: 10px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    min-width: 150px;
+    
+    &:focus {
+      outline: none;
+      border-color: #c9b8a3;
+      box-shadow: 0 0 0 2px rgba(201, 184, 163, 0.3);
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(107, 91, 77, 0.1);
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(107, 91, 77, 0.2);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .btn-search {
+    background: linear-gradient(135deg, #6b5b4d 0%, #8a7a6d 100%);
+    color: white;
+    
+    &:hover {
+      background: linear-gradient(135deg, #8a7a6d 0%, #a89684 100%);
+    }
+  }
+
+  .btn-filter {
+    background: linear-gradient(135deg, #8a7a6d 0%, #a89684 100%);
+    color: white;
+    
+    &:hover {
+      background: linear-gradient(135deg, #a89684 0%, #c9b8a3 100%);
+    }
+  }
+
+  .btn-add-product {
+    background: linear-gradient(135deg, #a89684 0%, #c9b8a3 100%);
+    color: white;
+    
+    &:hover {
+      background: linear-gradient(135deg, #c9b8a3 0%, #d4c4b5 100%);
+    }
+  }
+
+  .btn-add-category {
+    background: linear-gradient(135deg, #c9b8a3 0%, #d4c4b5 100%);
+    color: white;
+    
+    &:hover {
+      background: linear-gradient(135deg, #d4c4b5 0%, #e5dfd8 100%);
+    }
+  }
+}
+
+.categories-section,
+.user-actions-section,
+.users-section {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 30px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  
+  h3 {
+    color: #6b5b4d;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+  
+  p {
+    color: #8a7a6d;
+    font-size: 1.1rem;
+  }
+}
+
+// Стили для таблицы
+.products-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  
+  th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  th {
+    background: linear-gradient(135deg, #6b5b4d, #8a7a6d);
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  
+  td {
+    font-size: 14px;
+    color: #333;
+  }
+  
+  tr {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      background: rgba(201, 184, 163, 0.1);
+    }
+    
+    &.selected {
+      background: rgba(201, 184, 163, 0.2);
+      border-left: 4px solid #c9b8a3;
+    }
+  }
+  
+  .btn-edit,
+  .btn-delete {
+    padding: 5px 10px;
+    margin: 0 2px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+  
+  .btn-edit {
+    background: linear-gradient(135deg, #6b5b4d 0%, #8a7a6d 100%);
+    color: white;
+    
+    &:hover {
+      background: linear-gradient(135deg, #8a7a6d 0%, #a89684 100%);
+    }
+  }
+  
+  .btn-delete {
+    background: linear-gradient(135deg, #d97066 0%, #c25a50 100%);
+    color: white;
+    
+    &:hover {
+      background: linear-gradient(135deg, #c25a50 0%, #b84a40 100%);
+    }
+  }
+}
+
+// Адаптивность
+@media (max-width: 768px) {
+  .products-section {
+    .search-section {
+      flex-direction: column;
+    }
+    
+    .action-buttons {
+      flex-direction: column;
+    }
+  }
+  
+  .products-table {
+    font-size: 12px;
+    
+    th, td {
+      padding: 8px 10px;
+    }
+  }
+}

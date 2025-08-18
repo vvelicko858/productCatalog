@@ -1,0 +1,13 @@
+<div class="categories-list-container">
+  <h3>Список категорий</h3>
+  
+  <div class="categories-grid">
+    <div class="category-card" 
+         *ngFor="let category of categories"
+         [class.selected]="selectedCategory?.id === category.id"
+         (click)="selectCategory(category)">
+      <h4>{{ category.name }}</h4>
+      <p>{{ category.description }}</p>
+    </div>
+  </div>
+</div>
