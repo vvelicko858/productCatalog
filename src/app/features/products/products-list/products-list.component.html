@@ -1,4 +1,5 @@
 <div class="products-list-container">
+  <!-- Панель управления -->
   <div class="control-panel">
     <form [formGroup]="searchForm" class="search-section">
       <input
@@ -18,8 +19,8 @@
       <button class="btn btn-add-product" (click)="addProduct()">
         ➕ Добавить продукт
       </button>
-      <button class="btn btn-add-category" (click)="addCategory()">
-       ️ Добавить категорию
+      <button class="btn btn-add-category" *ngIf="currentUser?.role !== 'Simple'" (click)="addCategory()">
+        ️ Добавить категорию
       </button>
     </div>
   </div>
@@ -47,23 +48,23 @@
           <th>Описание</th>
           <th>Стоимость в рублях</th>
           <th>Примечание общее</th>
-          <th>Примечание специальное</th>
+          <th *ngIf="currentUser?.role !== 'Simple'">Примечание специальное</th>
           <th>Действия</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let product of filteredProducts"
-            [class.selected]="selectedProduct?.id === product.id"
-            (click)="selectProduct(product)">
+            (click)="viewProduct(product)"
+            [class.selected]="selectedProduct?.id === product.id">
           <td>{{ product.name }}</td>
           <td>{{ product.category }}</td>
           <td>{{ product.description }}</td>
-          <td>{{ product.price }}</td>
+          <td>{{ product.price | formatPrice }}</td>
           <td>{{ product.noteGeneral || '-' }}</td>
-          <td>{{ product.noteSpecial || '-' }}</td>
+          <td *ngIf="currentUser?.role !== 'Simple'">{{ product.noteSpecial || '-' }}</td>
           <td>
-            <button class="btn-edit" (click)="editProduct(product)">✏️</button>
-            <button class="btn-delete" (click)="deleteProduct(product)">🗑️</button>
+            <button class="btn-edit" (click)="editProduct(product); $event.stopPropagation()">✏️</button>
+            <button class="btn-delete" *ngIf="currentUser?.role !== 'Simple'" (click)="deleteProduct(product); $event.stopPropagation()">🗑️</button>
           </td>
         </tr>
       </tbody>
@@ -75,6 +76,54 @@
   </div>
 </div>
 
+<div class="modal-overlay" *ngIf="showViewProductModal" (click)="closeViewProductModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Просмотр продукта</h3>
+      <button class="modal-close" (click)="closeViewProductModal()">×</button>
+    </div>
+
+    <div class="view-product-form" *ngIf="selectedProduct">
+      <div class="form-group">
+        <label>Название продукта</label>
+        <div class="view-field">{{ selectedProduct.name }}</div>
+      </div>
+
+      <div class="form-group">
+        <label>Категория</label>
+        <div class="view-field">{{ selectedProduct.category }}</div>
+      </div>
+
+      <div class="form-group">
+        <label>Описание</label>
+        <div class="view-field">{{ selectedProduct.description }}</div>
+      </div>
+
+      <div class="form-group">
+        <label>Стоимость в рублях</label>
+        <div class="view-field">{{ selectedProduct.price | formatPrice }}</div>
+      </div>
+
+      <div class="form-group">
+        <label>Примечание общее</label>
+        <div class="view-field">{{ selectedProduct.noteGeneral || 'Не указано' }}</div>
+      </div>
+
+      <div class="form-group" *ngIf="currentUser?.role !== 'Simple'">
+        <label>Примечание специальное</label>
+        <div class="view-field">{{ selectedProduct.noteSpecial || 'Не указано' }}</div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-close" (click)="closeViewProductModal()">
+          Закрыть
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно добавления продукта -->
 <div class="modal-overlay" *ngIf="showAddProductModal" (click)="closeAddProductModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -147,7 +196,7 @@
           placeholder="Введите общее примечание">
       </div>
 
-      <div class="form-group">
+      <div class="form-group" *ngIf="currentUser?.role !== 'Simple'">
         <label for="noteSpecial">Примечание специальное</label>
         <input
           type="text"
@@ -169,6 +218,7 @@
   </div>
 </div>
 
+<!-- Модальное окно добавления категории -->
 <div class="modal-overlay" *ngIf="showAddCategoryModal" (click)="closeAddCategoryModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -220,6 +270,101 @@
         <button type="submit" class="btn btn-submit" [disabled]="isAddingCategory">
           <span *ngIf="!isAddingCategory">Добавить категорию</span>
           <span *ngIf="isAddingCategory">Добавление...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Модальное окно редактирования продукта -->
+<div class="modal-overlay" *ngIf="showEditProductModal" (click)="closeEditProductModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Редактировать продукт</h3>
+      <button class="modal-close" (click)="closeEditProductModal()">×</button>
+    </div>
+
+    <form [formGroup]="editProductForm" (ngSubmit)="onSubmitEditProduct()" class="edit-product-form">
+      <div class="form-group">
+        <label for="editName">Название продукта *</label>
+        <input
+          type="text"
+          id="editName"
+          formControlName="name"
+          placeholder="Введите название продукта"
+          [class.error]="editNameField?.invalid && editNameField?.touched">
+        <div class="error-message" *ngIf="editNameField?.invalid && editNameField?.touched">
+          <span *ngIf="editNameField?.errors?.['required']">Название обязательно</span>
+          <span *ngIf="editNameField?.errors?.['minlength']">Минимум 2 символа</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="editCategory">Категория *</label>
+        <select id="editCategory" formControlName="category" [class.error]="editCategoryField?.invalid && editCategoryField?.touched">
+          <option value="">Выберите категорию</option>
+          <option *ngFor="let category of categories" [value]="category">
+            {{ category }}
+          </option>
+        </select>
+        <div class="error-message" *ngIf="editCategoryField?.invalid && editCategoryField?.touched">
+          <span *ngIf="editCategoryField?.errors?.['required']">Категория обязательна</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="editDescription">Описание *</label>
+        <textarea
+          id="editDescription"
+          formControlName="description"
+          placeholder="Введите описание продукта"
+          rows="3"
+          [class.error]="editDescriptionField?.invalid && editDescriptionField?.touched"></textarea>
+        <div class="error-message" *ngIf="editDescriptionField?.invalid && editDescriptionField?.touched">
+          <span *ngIf="editDescriptionField?.errors?.['required']">Описание обязательно</span>
+          <span *ngIf="editDescriptionField?.errors?.['minlength']">Минимум 5 символов</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="editPrice">Стоимость в рублях *</label>
+        <input
+          type="text"
+          id="editPrice"
+          formControlName="price"
+          placeholder="0.000"
+          [class.error]="editPriceField?.invalid && editPriceField?.touched">
+        <div class="error-message" *ngIf="editPriceField?.invalid && editPriceField?.touched">
+          <span *ngIf="editPriceField?.errors?.['required']">Стоимость обязательна</span>
+          <span *ngIf="editPriceField?.errors?.['pattern']">Неверный формат цены</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="editNoteGeneral">Примечание общее</label>
+        <input
+          type="text"
+          id="editNoteGeneral"
+          formControlName="noteGeneral"
+          placeholder="Введите общее примечание">
+      </div>
+
+      <div class="form-group" *ngIf="currentUser?.role !== 'Simple'">
+        <label for="editNoteSpecial">Примечание специальное</label>
+        <input
+          type="text"
+          id="editNoteSpecial"
+          formControlName="noteSpecial"
+          placeholder="Введите специальное примечание">
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-cancel" (click)="closeEditProductModal()">
+          Отмена
+        </button>
+        <button type="submit" class="btn btn-submit" [disabled]="isEditingProduct">
+          <span *ngIf="!isEditingProduct">Сохранить изменения</span>
+          <span *ngIf="isEditingProduct">Сохранение...</span>
         </button>
       </div>
     </form>

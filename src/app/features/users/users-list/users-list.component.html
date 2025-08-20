@@ -1,1 +1,272 @@
-<p>users-list works!</p>
+<div class="users-list-container">
+  <!-- Заголовок секции -->
+  <div class="section-header">
+    <h3>Список пользователей</h3>
+    <p class="section-description">Управление пользователями системы, их ролями и статусами</p>
+  </div>
+
+  <!-- Кнопка добавления пользователя -->
+  <div class="add-user-section">
+    <button class="btn btn-primary add-user-btn" (click)="addUser()">
+      <span class="btn-icon">👤</span>
+      Добавить пользователя
+    </button>
+  </div>
+
+  <!-- Индикатор загрузки -->
+  <div *ngIf="loading" class="loading-indicator">
+    <div class="spinner"></div>
+    <p>Загрузка пользователей...</p>
+  </div>
+
+  <!-- Сообщение об ошибке -->
+  <div *ngIf="error" class="error-message">
+    <p>{{ error }}</p>
+    <button (click)="loadUsers()" class="btn-retry">Повторить загрузку</button>
+  </div>
+
+  <!-- Список пользователей -->
+  <div *ngIf="!loading && !error" class="users-content">
+    <!-- Сетка пользователей -->
+    <div class="users-grid">
+      <div class="user-card" 
+           *ngFor="let user of users"
+           [class.selected]="selectedUser?.id === user.id"
+           [class.blocked]="user.isBlocked"
+           (click)="selectUser(user)">
+        
+        <!-- Аватар и основная информация -->
+        <div class="user-info">
+          <div class="user-avatar">
+            <span class="avatar-text">{{ user.username.charAt(0).toUpperCase() }}</span>
+          </div>
+          <div class="user-details">
+            <h4 class="username">{{ user.username }}</h4>
+            <p class="email">{{ user.email }}</p>
+            <span class="role-badge" [class]="'role-' + user.role.toLowerCase()">
+              {{ user.role }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Статус блокировки -->
+        <div class="user-status">
+          <span *ngIf="user.isBlocked" class="blocked-status">🚫 Заблокирован</span>
+          <span *ngIf="!user.isBlocked" class="active-status">✅ Активен</span>
+        </div>
+
+        <!-- Действия с пользователем -->
+        <div class="user-actions">
+          <button class="action-btn edit-btn" 
+                  (click)="editUser(user, $event)"
+                  title="Редактировать пользователя">
+            ✏️
+          </button>
+          
+          <button class="action-btn reset-password-btn" 
+                  (click)="resetPassword(user, $event)"
+                  title="Сбросить пароль">
+            🔑
+          </button>
+          <button class="action-btn block-btn" 
+                  (click)="toggleUserBlock(user, $event)"
+                  [title]="user.isBlocked ? 'Разблокировать пользователя' : 'Заблокировать пользователя'">
+            {{ user.isBlocked ? '🔓' : '🚫' }}
+          </button>
+          <button class="action-btn delete-btn" 
+                  (click)="deleteUser(user, $event)"
+                  title="Удалить пользователя">
+            🗑️
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Сообщение если пользователей нет -->
+    <div *ngIf="users.length === 0" class="no-users">
+      <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <h4>Пользователи не найдены</h4>
+        <p>Создайте первого пользователя для начала работы с системой</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно добавления пользователя -->
+<div *ngIf="showAddUserModal" class="modal-overlay" (click)="closeAddUserModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Добавить пользователя</h3>
+      <button class="close-btn" (click)="closeAddUserModal()">&times;</button>
+    </div>
+    
+    <form [formGroup]="addUserForm" (ngSubmit)="onSubmitAddUser()" class="user-form">
+      <!-- Имя пользователя -->
+      <div class="form-group">
+        <label for="addUsername">Имя пользователя *</label>
+        <input 
+          id="addUsername"
+          type="text" 
+          formControlName="username"
+          class="form-control"
+          [class.invalid]="addUsernameField?.invalid && addUsernameField?.touched"
+          placeholder="Введите имя пользователя">
+        <div *ngIf="addUsernameField?.invalid && addUsernameField?.touched" class="error-message">
+          <span *ngIf="addUsernameField?.errors?.['required']">Имя пользователя обязательно</span>
+          <span *ngIf="addUsernameField?.errors?.['minlength']">Имя должно содержать минимум 3 символа</span>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="addEmail">Email *</label>
+        <input 
+          id="addEmail"
+          type="email" 
+          formControlName="email"
+          class="form-control"
+          [class.invalid]="addEmailField?.invalid && addEmailField?.touched"
+          placeholder="Введите email">
+        <div *ngIf="addEmailField?.invalid && addEmailField?.touched" class="error-message">
+          <span *ngIf="addEmailField?.errors?.['required']">Email обязателен</span>
+          <span *ngIf="addEmailField?.errors?.['email']">Введите корректный email</span>
+        </div>
+      </div>
+
+      <!-- Пароль -->
+      <div class="form-group">
+        <label for="addPassword">Пароль *</label>
+        <input 
+          id="addPassword"
+          type="password" 
+          formControlName="password"
+          class="form-control"
+          [class.invalid]="addPasswordField?.invalid && addPasswordField?.touched"
+          placeholder="Введите пароль">
+        <div *ngIf="addPasswordField?.invalid && addPasswordField?.touched" class="error-message">
+          <span *ngIf="addPasswordField?.errors?.['required']">Пароль обязателен</span>
+          <span *ngIf="addPasswordField?.errors?.['minlength']">Пароль должен содержать минимум 6 символов</span>
+        </div>
+      </div>
+
+      <!-- Роль -->
+      <div class="form-group">
+        <label for="addRole">Роль *</label>
+        <select 
+          id="addRole"
+          formControlName="role"
+          class="form-control">
+          <option *ngFor="let role of userRoles" [value]="role">{{ role }}</option>
+        </select>
+      </div>
+
+      <!-- Статус блокировки -->
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="isBlocked">
+          <span class="checkmark"></span>
+          Пользователь заблокирован
+        </label>
+      </div>
+
+      <!-- Кнопки действий -->
+      <div class="form-actions">
+        <button type="button" 
+                class="btn btn-secondary" 
+                (click)="closeAddUserModal()"
+                [disabled]="isAddingUser">
+          Отмена
+        </button>
+        <button type="submit" 
+                class="btn btn-primary" 
+                [disabled]="addUserForm.invalid || isAddingUser">
+          <span *ngIf="!isAddingUser">Добавить пользователя</span>
+          <span *ngIf="isAddingUser">Добавление...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Модальное окно редактирования пользователя -->
+<div *ngIf="showEditUserModal" class="modal-overlay" (click)="closeEditUserModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Редактировать пользователя</h3>
+      <button class="close-btn" (click)="closeEditUserModal()">&times;</button>
+    </div>
+    
+    <form [formGroup]="editUserForm" (ngSubmit)="onSubmitEditUser()" class="user-form">
+      <!-- Имя пользователя -->
+      <div class="form-group">
+        <label for="editUsername">Имя пользователя *</label>
+        <input 
+          id="editUsername"
+          type="text" 
+          formControlName="username"
+          class="form-control"
+          [class.invalid]="editUsernameField?.invalid && editUsernameField?.touched"
+          placeholder="Введите имя пользователя">
+        <div *ngIf="editUsernameField?.invalid && editUsernameField?.touched" class="error-message">
+          <span *ngIf="editUsernameField?.errors?.['required']">Имя пользователя обязательно</span>
+          <span *ngIf="editUsernameField?.errors?.['minlength']">Имя должно содержать минимум 3 символа</span>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="editEmail">Email *</label>
+        <input 
+          id="editEmail"
+          type="email" 
+          formControlName="email"
+          class="form-control"
+          [class.invalid]="editEmailField?.invalid && editEmailField?.touched"
+          placeholder="Введите email">
+        <div *ngIf="editEmailField?.invalid && editEmailField?.touched" class="error-message">
+          <span *ngIf="editEmailField?.errors?.['required']">Email обязателен</span>
+          <span *ngIf="editEmailField?.errors?.['email']">Введите корректный email</span>
+        </div>
+      </div>
+
+      <!-- Роль -->
+      <div class="form-group">
+        <label for="editRole">Роль *</label>
+        <select 
+          id="editRole"
+          formControlName="role"
+          class="form-control">
+          <option *ngFor="let role of userRoles" [value]="role">{{ role }}</option>
+        </select>
+      </div>
+
+      <!-- Статус блокировки -->
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="isBlocked">
+          <span class="checkmark"></span>
+          Пользователь заблокирован
+        </label>
+      </div>
+
+      <!-- Кнопки действий -->
+      <div class="form-actions">
+        <button type="button" 
+                class="btn btn-secondary" 
+                (click)="closeEditUserModal()"
+                [disabled]="isEditingUser">
+          Отмена
+        </button>
+        <button type="submit" 
+                class="btn btn-primary" 
+                [disabled]="editUserForm.invalid || isEditingUser">
+          <span *ngIf="!isEditingUser">Сохранить изменения</span>
+          <span *ngIf="isEditingUser">Сохранение...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+

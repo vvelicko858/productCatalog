@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Firestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy } from '@angular/fire/firestore';
-import { Observable, from, map, catchError, of } from 'rxjs';
+import { Firestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, limit } from '@angular/fire/firestore';
+import { Observable, from, map, catchError, of, switchMap } from 'rxjs';
 import { Category, CreateCategoryDto, UpdateCategoryDto } from '../models/category';
+import { ProductsService } from './products.service';
+import { LogsService } from './logs.service';
+import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +12,11 @@ import { Category, CreateCategoryDto, UpdateCategoryDto } from '../models/catego
 export class CategoriesService {
   private readonly collectionName = 'categories';
 
-  constructor(private firestore: Firestore) {}
+  constructor(
+    private firestore: Firestore,
+    private productsService: ProductsService,
+    private logsService: LogsService
+  ) {}
 
   // Вспомогательный метод для очистки объекта от undefined значений
   private cleanObject(obj: any): any {
@@ -82,6 +89,26 @@ export class CategoriesService {
     );
   }
 
+  // Создать новую категорию с логированием
+  createCategoryWithLogging(categoryData: CreateCategoryDto, user: User): Observable<Category> {
+    return this.createCategory(categoryData).pipe(
+      switchMap(category => {
+        // Логируем создание категории
+        this.logsService.logUserAction(
+          user, 
+          'Создание категории', 
+          `Создана категория "${category.name}" с описанием: "${category.description}"`
+        ).pipe(
+          catchError(logError => {
+            console.warn('Ошибка логирования создания категории:', logError);
+            return of(null);
+          })
+        ).subscribe(); // Не блокируем основной поток
+        return of(category);
+      })
+    );
+  }
+
   // Обновить категорию
   updateCategory(id: string, categoryData: UpdateCategoryDto): Observable<void> {
     const categoryRef = doc(this.firestore, this.collectionName, id);
@@ -100,6 +127,34 @@ export class CategoriesService {
     );
   }
 
+  // Обновить категорию с логированием
+  updateCategoryWithLogging(id: string, categoryData: UpdateCategoryDto, user: User): Observable<void> {
+    return this.updateCategory(id, categoryData).pipe(
+      switchMap(() => {
+        // Формируем детальное описание изменений
+        const changes = [];
+        if (categoryData.name !== undefined) changes.push(`название: "${categoryData.name}"`);
+        if (categoryData.description !== undefined) changes.push(`описание: "${categoryData.description}"`);
+        if (categoryData.isActive !== undefined) changes.push(`активность: ${categoryData.isActive ? 'активна' : 'неактивна'}`);
+        
+        const changeDescription = changes.length > 0 ? `Изменены поля: ${changes.join(', ')}` : 'Обновлена категория';
+        
+        // Логируем обновление категории
+        this.logsService.logUserAction(
+          user, 
+          'Обновление категории', 
+          `${changeDescription} (ID: ${id})`
+        ).pipe(
+          catchError(logError => {
+            console.warn('Ошибка логирования обновления категории:', logError);
+            return of(null);
+          })
+        ).subscribe(); // Не блокируем основной поток
+        return of(void 0);
+      })
+    );
+  }
+
   // Удалить категорию
   deleteCategory(id: string): Observable<void> {
     const categoryRef = doc(this.firestore, this.collectionName, id);
@@ -112,10 +167,53 @@ export class CategoriesService {
     );
   }
 
+  // Удалить категорию и все связанные продукты
+  deleteCategoryWithProducts(id: string, categoryName: string): Observable<void> {
+    // Сначала удаляем все продукты этой категории
+    return this.productsService.deleteProductsByCategory(categoryName).pipe(
+      switchMap(() => {
+        // Затем удаляем саму категорию
+        const categoryRef = doc(this.firestore, this.collectionName, id);
+        return from(deleteDoc(categoryRef));
+      }),
+      catchError(error => {
+        console.error('Error deleting category with products:', error);
+        throw error;
+      })
+    );
+  }
+
+  // Удалить категорию и все связанные продукты с логированием
+  deleteCategoryWithProductsWithLogging(id: string, categoryName: string, user: User): Observable<void> {
+    return this.deleteCategoryWithProducts(id, categoryName).pipe(
+      switchMap(() => {
+        // Логируем удаление категории
+        this.logsService.logUserAction(
+          user, 
+          'Удаление категории', 
+          `Удалена категория "${categoryName}" (ID: ${id}) и все связанные продукты`
+        ).pipe(
+          catchError(logError => {
+            console.warn('Ошибка логирования удаления категории:', logError);
+            return of(null);
+          })
+        ).subscribe(); // Не блокируем основной поток
+        return of(void 0);
+      })
+    );
+  }
+
   // Проверить, используется ли категория в продуктах
   isCategoryUsed(categoryName: string): Observable<boolean> {
-    // Здесь добавить логику проверки использования категории
-    // Пока возвращаем false
-    return of(false);
+    const productsRef = collection(this.firestore, 'products');
+    const q = query(productsRef, where('category', '==', categoryName), limit(1));
+    
+    return from(getDocs(q)).pipe(
+      map(snapshot => !snapshot.empty),
+      catchError(error => {
+        console.error('Error checking if category is used:', error);
+        return of(false);
+      })
+    );
   }
 }

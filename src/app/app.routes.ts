@@ -8,6 +8,7 @@ import { UserActionsComponent } from './features/users/user-actions/user-actions
 import { UsersListComponent } from './features/users/users-list/users-list.component';
 import { authGuard } from './core/guards/auth.guard';
 import { noAuthGuard } from './core/guards/no-auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const appRoutes: Route[] = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -26,10 +27,28 @@ export const appRoutes: Route[] = [
     canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'products', pathMatch: 'full' },
-      { path: 'products', component: ProductsListComponent },
-      { path: 'categories', component: CategoriesListComponent },
-      { path: 'user-actions', component: UserActionsComponent },
-      { path: 'users', component: UsersListComponent }
+      { 
+        path: 'products', 
+        component: ProductsListComponent,
+        data: { title: 'Каталог продуктов' }
+      },
+      { 
+        path: 'categories', 
+        component: CategoriesListComponent,
+        data: { title: 'Справочник категорий' }
+      },
+      { 
+        path: 'user-actions', 
+        component: UserActionsComponent,
+        canActivate: [roleGuard],
+        data: { title: 'Действия пользователей' }
+      },
+      { 
+        path: 'users', 
+        component: UsersListComponent,
+        canActivate: [roleGuard],
+        data: { title: 'Список пользователей' }
+      }
     ]
   }
 ];

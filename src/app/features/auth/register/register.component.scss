@@ -1,6 +1,3 @@
-/* register.component.scss */
-
-// Variables
 $primary-bg: linear-gradient(135deg, #f8f4f0 0%, #f1ede8 25%, #ebe6e0 50%, #e5dfd8 75%, #dfd8d0 100%);
 $glass-bg: rgba(255, 255, 255, 0.25);
 $glass-border: rgba(255, 255, 255, 0.3);
@@ -16,7 +13,6 @@ $focus-color: #c9b8a3;
 $error-color: #d97066;
 $success-color: #7cb342;
 
-// Mixins
 @mixin glass-morphism($opacity: 0.25, $blur: 40px) {
   background: rgba(255, 255, 255, $opacity);
   backdrop-filter: blur($blur);
@@ -31,7 +27,6 @@ $success-color: #7cb342;
   transform: translateY($translate);
 }
 
-// Base styles
 * {
   margin: 0;
   padding: 0;
@@ -126,7 +121,6 @@ $success-color: #7cb342;
   }
 }
 
-// Logo section
 .logo-section {
   text-align: center;
   margin-bottom: 40px;
@@ -176,7 +170,6 @@ h1 {
   line-height: 1.5;
 }
 
-// Form styles
 .login-form {
   width: 100%;
 }
@@ -278,7 +271,6 @@ h1 {
   }
 }
 
-// Buttons
 .button-group {
   margin-bottom: 32px;
 }
@@ -408,7 +400,6 @@ h1 {
   }
 }
 
-// Signup prompt
 .signup {
   text-align: center;
 
@@ -438,9 +429,6 @@ h1 {
   }
 }
 
-/* ----------------- Responsive ----------------- */
-
-/* Very small screens (phones <380px) */
 @media (max-width: 380px) {
   .glass-card {
     padding: 24px 20px;
@@ -459,7 +447,6 @@ h1 {
   }
 }
 
-/* Small phones (≤480px) */
 @media (max-width: 480px) {
   .glass-card {
     padding: 32px 24px;
@@ -501,7 +488,6 @@ h1 {
   }
 }
 
-/* Tablets (≤768px) */
 @media (max-width: 768px) {
   .glass-card {
     max-width: 380px;
@@ -522,14 +508,12 @@ h1 {
   }
 }
 
-/* Small desktops (≤1024px) */
 @media (max-width: 1024px) {
   .glass-card {
     max-width: 420px;
   }
 }
 
-/* Large desktops (≥1200px) */
 @media (min-width: 1200px) {
   .login-container {
     padding: 40px;

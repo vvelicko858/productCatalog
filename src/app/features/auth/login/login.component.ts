@@ -48,6 +48,13 @@ export class LoginComponent {
          },
          error: (err) => {
            console.error('Login error:', err);
+           
+           // Проверяем, связана ли ошибка с блокировкой аккаунта
+           if (err instanceof Error && err.message.includes('заблокирован')) {
+             alert('Ваш аккаунт заблокирован. Обратитесь к администратору для разблокировки.');
+           } else {
+             alert('Ошибка входа в систему. Проверьте email и пароль.');
+           }
          }
        });
     } else {

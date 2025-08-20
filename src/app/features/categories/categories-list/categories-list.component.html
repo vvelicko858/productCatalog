@@ -1,13 +1,125 @@
 <div class="categories-list-container">
-  <h3>Список категорий</h3>
-  
-  <div class="categories-grid">
-    <div class="category-card" 
-         *ngFor="let category of categories"
-         [class.selected]="selectedCategory?.id === category.id"
-         (click)="selectCategory(category)">
-      <h4>{{ category.name }}</h4>
-      <p>{{ category.description }}</p>
+  <!-- Заголовок секции -->
+  <div class="section-header">
+    <h3>Справочник категорий</h3>
+    <p class="section-description">Управление категориями товаров и их описаниями</p>
+  </div>
+
+  <!-- Индикатор загрузки -->
+  <div *ngIf="loading" class="loading-indicator">
+    <div class="spinner"></div>
+    <p>Загрузка категорий...</p>
+  </div>
+
+  <!-- Сообщение об ошибке -->
+  <div *ngIf="error" class="error-message">
+    <p>{{ error }}</p>
+    <button (click)="loadCategories()" class="btn-retry">Повторить загрузку</button>
+  </div>
+
+  <!-- Список категорий -->
+  <div *ngIf="!loading && !error" class="categories-content">
+    <!-- Сетка категорий -->
+    <div class="categories-grid">
+      <div class="category-card" 
+           *ngFor="let category of categories"
+           [class.selected]="selectedCategory?.id === category.id"
+           (click)="selectCategory(category)">
+        
+        <!-- Название категории -->
+        <div class="category-name">
+          <h4>{{ category.name }}</h4>
+        </div>
+        
+        <!-- Описание категории -->
+        <div class="category-description">
+          <p>{{ category.description }}</p>
+        </div>
+
+        <!-- Кнопка удаления -->
+        <div class="category-actions" *ngIf="currentUser?.role !== 'Simple'">
+          <button class="btn-edit" (click)="editCategory(category, $event)">✏️</button>
+          <button class="btn-delete" (click)="deleteCategory(category, $event)">🗑️</button>
+        </div>
+      </div>
     </div>
+
+    <!-- Сообщение если категорий нет -->
+    <div *ngIf="categories.length === 0" class="no-categories">
+      <div class="empty-state">
+        <div class="empty-icon">📂</div>
+        <h4>Категории не найдены</h4>
+        <p>Создайте первую категорию для начала работы с каталогом</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно редактирования категории -->
+<div *ngIf="showEditCategoryModal" class="modal-overlay" (click)="closeEditCategoryModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Редактировать категорию</h3>
+      <button class="close-btn" (click)="closeEditCategoryModal()">&times;</button>
+    </div>
+    
+    <form [formGroup]="editCategoryForm" (ngSubmit)="onSubmitEditCategory()" class="edit-form">
+      <!-- Название категории -->
+      <div class="form-group">
+        <label for="editName">Название категории *</label>
+        <input 
+          id="editName"
+          type="text" 
+          formControlName="name"
+          class="form-control"
+          [class.invalid]="editNameField?.invalid && editNameField?.touched"
+          placeholder="Введите название категории">
+        <div *ngIf="editNameField?.invalid && editNameField?.touched" class="error-message">
+          <span *ngIf="editNameField?.errors?.['required']">Название категории обязательно</span>
+          <span *ngIf="editNameField?.errors?.['minlength']">Название должно содержать минимум 2 символа</span>
+        </div>
+      </div>
+
+      <!-- Описание категории -->
+      <div class="form-group">
+        <label for="editDescription">Описание категории *</label>
+        <textarea 
+          id="editDescription"
+          formControlName="description"
+          class="form-control"
+          [class.invalid]="editDescriptionField?.invalid && editDescriptionField?.touched"
+          rows="3"
+          placeholder="Введите описание категории"></textarea>
+        <div *ngIf="editDescriptionField?.invalid && editDescriptionField?.touched" class="error-message">
+          <span *ngIf="editDescriptionField?.errors?.['required']">Описание категории обязательно</span>
+          <span *ngIf="editDescriptionField?.errors?.['minlength']">Описание должно содержать минимум 5 символов</span>
+        </div>
+      </div>
+
+      <!-- Активность категории -->
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="isActive">
+          <span class="checkmark"></span>
+          Категория активна
+        </label>
+      </div>
+
+      <!-- Кнопки действий -->
+      <div class="form-actions">
+        <button type="button" 
+                class="btn btn-secondary" 
+                (click)="closeEditCategoryModal()"
+                [disabled]="isEditingCategory">
+          Отмена
+        </button>
+        <button type="submit" 
+                class="btn btn-primary" 
+                [disabled]="editCategoryForm.invalid || isEditingCategory">
+          <span *ngIf="!isEditingCategory">Сохранить изменения</span>
+          <span *ngIf="isEditingCategory">Сохранение...</span>
+        </button>
+      </div>
+    </form>
   </div>
 </div>

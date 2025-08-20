@@ -6,4 +6,6 @@ export interface User {
   email: string;
   role: UserRole;
   isBlocked?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

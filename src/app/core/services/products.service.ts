@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Firestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit } from '@angular/fire/firestore';
-import { Observable, from, map, catchError, of } from 'rxjs';
+import { Observable, from, map, catchError, of, switchMap } from 'rxjs';
 import { Product, CreateProductDto, UpdateProductDto } from '../models/product';
+import { LogsService } from './logs.service';
+import { User } from '../models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +11,10 @@ import { Product, CreateProductDto, UpdateProductDto } from '../models/product';
 export class ProductsService {
   private readonly collectionName = 'products';
 
-  constructor(private firestore: Firestore) {}
+  constructor(
+    private firestore: Firestore,
+    private logsService: LogsService
+  ) {}
 
   // Вспомогательный метод для очистки объекта от undefined значений
   private cleanObject(obj: any): any {
@@ -94,6 +99,26 @@ export class ProductsService {
     );
   }
 
+  // Создать новый продукт с логированием
+  createProductWithLogging(productData: CreateProductDto, user: User): Observable<Product> {
+    return this.createProduct(productData).pipe(
+      switchMap(product => {
+        // Логируем создание продукта
+        this.logsService.logUserAction(
+          user,
+          'Создание продукта',
+          `Создан продукт "${product.name}" в категории "${product.category}"`
+        ).pipe(
+          catchError(logError => {
+            console.warn('Ошибка логирования создания продукта:', logError);
+            return of(null);
+          })
+        ).subscribe(); // Не блокируем основной поток
+        return of(product);
+      })
+    );
+  }
+
   // Обновить продукт
   updateProduct(id: string, productData: UpdateProductDto): Observable<void> {
     const productRef = doc(this.firestore, this.collectionName, id);
@@ -112,6 +137,26 @@ export class ProductsService {
     );
   }
 
+  // Обновить продукт с логированием
+  updateProductWithLogging(id: string, productData: UpdateProductDto, user: User): Observable<void> {
+    return this.updateProduct(id, productData).pipe(
+      switchMap(() => {
+        // Логируем обновление продукта
+        this.logsService.logUserAction(
+          user,
+          'Обновление продукта',
+          `Обновлен продукт с ID: ${id}`
+        ).pipe(
+          catchError(logError => {
+            console.warn('Ошибка логирования обновления продукта:', logError);
+            return of(null);
+          })
+        ).subscribe(); // Не блокируем основной поток
+        return of(void 0);
+      })
+    );
+  }
+
   // Удалить продукт
   deleteProduct(id: string): Observable<void> {
     const productRef = doc(this.firestore, this.collectionName, id);
@@ -124,33 +169,41 @@ export class ProductsService {
     );
   }
 
-  // Поиск продуктов по названию (клиентская фильтрация)
-  searchProductsByName(searchTerm: string): Observable<Product[]> {
-    if (!searchTerm.trim()) {
-      return this.getAllProducts();
-    }
-
-    // Используем клиентскую фильтрацию вместо сложных запросов к Firebase
-    return this.getAllProducts().pipe(
-      map(products =>
-        products.filter(product =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      )
+  // Удалить продукт с логированием
+  deleteProductWithLogging(id: string, user: User): Observable<void> {
+    return this.deleteProduct(id).pipe(
+      switchMap(() => {
+        // Логируем удаление продукта
+        this.logsService.logUserAction(
+          user,
+          'Удаление продукта',
+          `Удален продукт с ID: ${id}`
+        ).pipe(
+          catchError(logError => {
+            console.warn('Ошибка логирования удаления продукта:', logError);
+            return of(null);
+          })
+        ).subscribe(); // Не блокируем основной поток
+        return of(void 0);
+      })
     );
   }
 
-  // Фильтр по категории (клиентская фильтрация)
-  getProductsByCategory(category: string): Observable<Product[]> {
-    if (!category) {
-      return this.getAllProducts();
-    }
+  // Удалить все продукты по категории
+  deleteProductsByCategory(categoryName: string): Observable<void> {
+    const productsRef = collection(this.firestore, this.collectionName);
+    const q = query(productsRef, where('category', '==', categoryName));
 
-    // Используем клиентскую фильтрацию вместо запросов к Firebase
-    return this.getAllProducts().pipe(
-      map(products =>
-        products.filter(product => product.category === category)
-      )
+    return from(getDocs(q)).pipe(
+      switchMap(snapshot => {
+        const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+        return Promise.all(deletePromises);
+      }),
+      map(() => void 0), // Преобразуем в Observable<void>
+      catchError(error => {
+        console.error('Error deleting products by category:', error);
+        throw error;
+      })
     );
   }
 

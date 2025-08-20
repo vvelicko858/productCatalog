@@ -1,4 +1,10 @@
 <div class="dashboard-container">
+  <!-- Состояние загрузки -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Инициализация приложения...</p>
+  </div>
+
   <div *ngIf="!isLoading">
     <header class="dashboard-header">
       <div class="user-info">
@@ -23,12 +29,14 @@
         Справочник категорий
       </button>
       <button
+        *ngIf="currentUser?.role === 'Admin'"
         class="action-btn"
         [class.active]="activeAction === 'user-actions'"
         (click)="setActiveAction('user-actions')">
         Действия пользователей
       </button>
       <button
+        *ngIf="currentUser?.role === 'Admin'"
         class="action-btn"
         [class.active]="activeAction === 'users'"
         (click)="setActiveAction('users')">

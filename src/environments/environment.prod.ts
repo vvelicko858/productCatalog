@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  useEmulators: false, // В продакшене эмуляторы не используются
   firebase: {
     apiKey: "AIzaSyA2q_uvYHnexppdb5at90XdShmMrgDaJTM",
     authDomain: "productcatalog-2a4a3.firebaseapp.com",

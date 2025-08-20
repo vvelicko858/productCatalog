@@ -1,10 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { User } from '../../core/models/user';
-import { Subscription, combineLatest, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard',
@@ -18,34 +18,42 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isLoading = true;
   activeAction: string = 'products';
   private userSubscription: Subscription | null = null;
+  private routerSubscription: Subscription | null = null;
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    public router: Router
   ) {}
 
   ngOnInit(): void {
-    this.userSubscription = combineLatest([
-      this.authService.currentUser$,
-      this.authService.isAuthenticated$
-    ]).pipe(
-      map(([user, isAuthenticated]) => {
-        this.currentUser = user;
+    // Подписываемся на изменения пользователя
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      
+      // Проверяем, что аутентификация инициализирована
+      if (this.authService.isAuthInitialized()) {
         this.isLoading = false;
-        return { user, isAuthenticated };
-      }),
-      catchError((error) => {
-        console.error('Dashboard: Error in subscription:', error);
-        this.isLoading = false;
-        return of({ user: null, isAuthenticated: false });
-      })
-    ).subscribe();
-    this.updateActiveActionFromRoute();
+        // Устанавливаем активную вкладку на основе текущего маршрута
+        this.updateActiveActionFromRoute();
+      }
+    });
+
+    // Подписываемся на события навигации
+    this.routerSubscription = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      if (this.authService.isAuthInitialized()) {
+        this.updateActiveActionFromRoute();
+      }
+    });
   }
 
   ngOnDestroy(): void {
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
+    }
+    if (this.routerSubscription) {
+      this.routerSubscription.unsubscribe();
     }
   }
 
@@ -71,20 +79,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   setActiveAction(action: string): void {
     this.activeAction = action;
+    
     // Навигация к соответствующему маршруту
-    this.router.navigate(['/dashboard', action]);
+    const route = `/dashboard/${action}`;
+    this.router.navigate([route]);
   }
 
   private updateActiveActionFromRoute(): void {
     const url = this.router.url;
-    if (url.includes('/products')) {
+    
+    if (url.includes('/dashboard/products') || url === '/dashboard') {
       this.activeAction = 'products';
-    } else if (url.includes('/categories')) {
+    } else if (url.includes('/dashboard/categories')) {
       this.activeAction = 'categories';
-    } else if (url.includes('/user-actions')) {
+    } else if (url.includes('/dashboard/user-actions')) {
       this.activeAction = 'user-actions';
-    } else if (url.includes('/users')) {
+    } else if (url.includes('/dashboard/users')) {
       this.activeAction = 'users';
+    } else {
+      // По умолчанию устанавливаем products
+      this.activeAction = 'products';
     }
   }
 }

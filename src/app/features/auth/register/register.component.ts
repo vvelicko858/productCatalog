@@ -65,7 +65,10 @@ export class RegisterComponent implements OnInit {
     this.auth.register(payload.email, payload.password, payload.username).subscribe({
       next: (newUser) => {
         console.log('Пользователь зарегистрирован:', newUser);
-        this.router.navigate(['/dashboard']);
+        // Показываем сообщение об успешной регистрации
+        alert(`Регистрация прошла успешно! Теперь вы можете войти в систему используя email: ${payload.email}`);
+        // После регистрации перенаправляем на страницу входа
+        this.router.navigate(['/auth/login']);
       },
       error: (err) => {
         alert(err.message);
