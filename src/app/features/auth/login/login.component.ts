@@ -33,7 +33,6 @@ export class LoginComponent {
 
 
   register(): void {
-    console.log('register');
     this.router.navigate(['/auth/register']);
   }
 
@@ -42,14 +41,9 @@ export class LoginComponent {
 
        this.authService.login(this.loginForm.value.email, this.loginForm.value.password).subscribe({
          next: (user) => {
-           console.log('Login success:', user.user.uid);
-           // 👉 редирект на dashboard
            this.router.navigate(['/dashboard']);
          },
          error: (err) => {
-           console.error('Login error:', err);
-           
-           // Проверяем, связана ли ошибка с блокировкой аккаунта
            if (err instanceof Error && err.message.includes('заблокирован')) {
              alert('Ваш аккаунт заблокирован. Обратитесь к администратору для разблокировки.');
            } else {

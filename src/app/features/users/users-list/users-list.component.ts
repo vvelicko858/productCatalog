@@ -4,8 +4,8 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { UsersService } from '../../../core/services/users.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { User, UserRole } from '../../../core/models/user';
-import { Subscription } from 'rxjs';
-import { take, filter } from 'rxjs/operators';
+import { Subscription, of } from 'rxjs';
+import { take, filter, switchMap, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-users-list',
@@ -20,19 +20,15 @@ export class UsersListComponent implements OnInit, OnDestroy {
   loading = false;
   error = '';
 
-  // Модальные окна
   showAddUserModal = false;
   showEditUserModal = false;
 
 
-  // Состояния загрузки
   isAddingUser = false;
   isEditingUser = false;
-  // Формы
   addUserForm!: FormGroup;
   editUserForm!: FormGroup;
 
-  // Роли пользователей
   userRoles: UserRole[] = ['Simple', 'Advanced', 'Admin'];
 
   private subscription = new Subscription();
@@ -46,7 +42,6 @@ export class UsersListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Ждем инициализации аутентификации перед загрузкой пользователей
     this.subscription.add(
       this.authService.isAuthenticated$.pipe(
         filter(() => this.authService.isAuthInitialized()),
@@ -64,7 +59,6 @@ export class UsersListComponent implements OnInit, OnDestroy {
   }
 
   private initializeForms(): void {
-    // Форма добавления пользователя
     this.addUserForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
@@ -73,7 +67,6 @@ export class UsersListComponent implements OnInit, OnDestroy {
       isBlocked: [false]
     });
 
-    // Форма редактирования пользователя
     this.editUserForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
@@ -83,8 +76,6 @@ export class UsersListComponent implements OnInit, OnDestroy {
 
 
   }
-
-
 
   loadUsers(): void {
     this.loading = true;
@@ -109,21 +100,18 @@ export class UsersListComponent implements OnInit, OnDestroy {
     this.selectedUser = user;
   }
 
-  // Открыть модальное окно добавления пользователя
   addUser(): void {
     this.showAddUserModal = true;
     this.addUserForm.reset();
     this.addUserForm.patchValue({ role: 'Simple', isBlocked: false });
   }
 
-  // Закрыть модальное окно добавления пользователя
   closeAddUserModal(): void {
     this.showAddUserModal = false;
     this.addUserForm.reset();
     this.isAddingUser = false;
   }
 
-  // Отправить форму добавления пользователя
   onSubmitAddUser(): void {
     if (this.addUserForm.valid) {
       this.isAddingUser = true;
@@ -134,60 +122,52 @@ export class UsersListComponent implements OnInit, OnDestroy {
       const role = this.addUserForm.get('role')?.value;
       const isBlocked = this.addUserForm.get('isBlocked')?.value;
 
-      // Получаем текущего пользователя для логирования
       this.authService.currentUser$.pipe(take(1)).subscribe((currentUser: User | null) => {
         if (currentUser) {
-          // Используем метод создания пользователя через Firebase Auth с логированием
           this.subscription.add(
-            this.usersService.createUserWithAuthAndLogging(email, password, username, role, currentUser).subscribe({
+            this.authService.register(email, password, username).pipe(
+              switchMap((newUser) => {
+                if (isBlocked) {
+                  return this.usersService.updateUser(newUser.id, { isBlocked: true }).pipe(
+                    map(() => newUser)
+                  );
+                }
+                return of(newUser);
+              }),
+              switchMap((newUser) => {
+                if (role !== 'Simple') {
+                  return this.usersService.updateUser(newUser.id, { role }).pipe(
+                    map(() => newUser)
+                  );
+                }
+                return of(newUser);
+              })
+            ).subscribe({
               next: (newUser) => {
-                // Перезагружаем пользователей из Firestore
                 this.loadUsers();
                 this.closeAddUserModal();
-                alert(`Пользователь "${username}" успешно создан в системе. Новый пользователь сможет войти в систему при первом входе используя свой email и пароль.`);
+                alert(`Пользователь "${username}" успешно создан в системе!\n\nEmail: ${email}\nПароль: ${password}\n\nНовый пользователь сможет войти в систему используя свой email и пароль.`);
               },
               error: (error) => {
-                console.error('Error creating user:', error);
                 this.error = 'Ошибка при создании пользователя';
                 this.isAddingUser = false;
 
-                // Показываем понятное сообщение об ошибке
                 if (error.code === 'auth/email-already-in-use') {
-                  alert('Пользователь с таким email уже существует');
+                  alert('Пользователь с таким email уже существует в Firebase Auth');
                 } else if (error.code === 'auth/weak-password') {
                   alert('Пароль слишком слабый. Используйте минимум 6 символов');
+                } else if (error.code === 'auth/invalid-email') {
+                  alert('Неверный формат email адреса');
                 } else {
-                  alert('Произошла ошибка при создании пользователя: ' + error.message);
+                  alert('Произошла ошибка при создании пользователя: ' + (error.message || error));
                 }
               }
             })
           );
         } else {
-          // Если пользователь не авторизован, создаем пользователя без логирования
-          this.subscription.add(
-            this.usersService.createUserWithAuth(email, password, username, role).subscribe({
-              next: (newUser) => {
-                // Перезагружаем пользователей из Firestore
-                this.loadUsers();
-                this.closeAddUserModal();
-                alert(`Пользователь "${username}" успешно создан в системе. Новый пользователь сможет войти в систему при первом входе используя свой email и пароль.`);
-              },
-              error: (error) => {
-                console.error('Error creating user:', error);
-                this.error = 'Ошибка при создании пользователя';
-                this.isAddingUser = false;
-
-                // Показываем понятное сообщение об ошибке
-                if (error.code === 'auth/email-already-in-use') {
-                  alert('Пользователь с таким email уже существует');
-                } else if (error.code === 'auth/weak-password') {
-                  alert('Пароль слишком слабый. Используйте минимум 6 символов');
-                } else {
-                  alert('Произошла ошибка при создании пользователя: ' + error.message);
-                }
-              }
-            })
-          );
+          this.error = 'Ошибка: пользователь не авторизован';
+          this.isAddingUser = false;
+          alert('Ошибка: пользователь не авторизован. Войдите в систему для создания новых пользователей.');
         }
       });
     } else {
@@ -200,14 +180,12 @@ export class UsersListComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Открыть модальное окно редактирования пользователя
   editUser(user: User, event: Event): void {
     event.stopPropagation();
 
     this.selectedUser = user;
     this.showEditUserModal = true;
 
-    // Заполняем форму данными выбранного пользователя
     this.editUserForm.patchValue({
       username: user.username,
       email: user.email,
@@ -216,7 +194,6 @@ export class UsersListComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Закрыть модальное окно редактирования
   closeEditUserModal(): void {
     this.showEditUserModal = false;
     this.editUserForm.reset();
@@ -224,7 +201,6 @@ export class UsersListComponent implements OnInit, OnDestroy {
     this.selectedUser = null;
   }
 
-  // Отправить форму редактирования пользователя
   onSubmitEditUser(): void {
     if (this.editUserForm.valid && this.selectedUser) {
       this.isEditingUser = true;
@@ -236,20 +212,16 @@ export class UsersListComponent implements OnInit, OnDestroy {
         isBlocked: this.editUserForm.get('isBlocked')?.value
       };
 
-      // Получаем текущего пользователя для логирования
       this.authService.currentUser$.pipe(take(1)).subscribe((currentUser: User | null) => {
         if (currentUser) {
-          // Используем метод с логированием
           this.subscription.add(
             this.usersService.updateUserWithLogging(this.selectedUser!.id, userData, currentUser).subscribe({
               next: () => {
-                // Перезагружаем пользователей из Firestore
                 this.loadUsers();
                 this.closeEditUserModal();
                 alert(`Пользователь "${userData.username}" успешно обновлен`);
               },
               error: (error) => {
-                console.error('Error updating user:', error);
                 this.error = 'Ошибка обновления пользователя';
                 this.isEditingUser = false;
                 alert('Произошла ошибка при обновлении пользователя');
@@ -257,17 +229,14 @@ export class UsersListComponent implements OnInit, OnDestroy {
             })
           );
         } else {
-          // Если пользователь не авторизован, обновляем пользователя без логирования
           this.subscription.add(
             this.usersService.updateUser(this.selectedUser!.id, userData).subscribe({
               next: () => {
-                // Перезагружаем пользователей из Firestore
                 this.loadUsers();
                 this.closeEditUserModal();
                 alert(`Пользователь "${userData.username}" успешно обновлен`);
               },
               error: (error) => {
-                console.error('Error updating user:', error);
                 this.error = 'Ошибка обновления пользователя';
                 this.isEditingUser = false;
                 alert('Произошла ошибка при обновлении пользователя');
@@ -287,18 +256,14 @@ export class UsersListComponent implements OnInit, OnDestroy {
   }
 
 
-
-  // Сбросить пароль пользователя
   resetPassword(user: User, event: Event): void {
     event.stopPropagation();
 
     if (confirm(`Вы уверены, что хотите сбросить пароль для пользователя "${user.username}"?\n\nБудет отправлен email на адрес ${user.email} со ссылкой для сброса пароля.`)) {
       this.loading = true;
 
-      // Получаем текущего пользователя для логирования
       this.authService.currentUser$.pipe(take(1)).subscribe((currentUser: User | null) => {
         if (currentUser) {
-          // Используем метод сброса пароля с логированием
           this.subscription.add(
             this.usersService.resetUserPasswordWithLogging(user.email, currentUser).subscribe({
               next: () => {
@@ -306,11 +271,9 @@ export class UsersListComponent implements OnInit, OnDestroy {
                 alert(`Пароль для пользователя "${user.username}" успешно сброшен. Email с инструкциями отправлен на адрес ${user.email}`);
               },
               error: (error) => {
-                console.error('Error resetting password:', error);
                 this.error = 'Ошибка сброса пароля';
                 this.loading = false;
 
-                // Показываем понятное сообщение об ошибке
                 if (error.code === 'auth/user-not-found') {
                   alert('Пользователь с таким email не найден в Firebase Auth');
                 } else if (error.code === 'auth/invalid-email') {
@@ -322,7 +285,6 @@ export class UsersListComponent implements OnInit, OnDestroy {
             })
           );
         } else {
-          // Если пользователь не авторизован, сбрасываем пароль без логирования
           this.subscription.add(
             this.usersService.resetUserPassword(user.email).subscribe({
               next: () => {
@@ -330,11 +292,9 @@ export class UsersListComponent implements OnInit, OnDestroy {
                 alert(`Пароль для пользователя "${user.username}" успешно сброшен. Email с инструкциями отправлен на адрес ${user.email}`);
               },
               error: (error) => {
-                console.error('Error resetting password:', error);
                 this.error = 'Ошибка сброса пароля';
                 this.loading = false;
 
-                // Показываем понятное сообщение об ошибке
                 if (error.code === 'auth/user-not-found') {
                   alert('Пользователь с таким email не найден в Firebase Auth');
                 } else if (error.code === 'auth/invalid-email') {
@@ -350,11 +310,6 @@ export class UsersListComponent implements OnInit, OnDestroy {
     }
   }
 
-
-
-
-
-  // Блокировать/разблокировать пользователя
   toggleUserBlock(user: User, event: Event): void {
     event.stopPropagation();
 
@@ -364,19 +319,15 @@ export class UsersListComponent implements OnInit, OnDestroy {
     if (confirm(`Вы уверены, что хотите ${action} пользователя "${user.username}"?`)) {
       this.loading = true;
 
-      // Получаем текущего пользователя для логирования
       this.authService.currentUser$.pipe(take(1)).subscribe((currentUser: User | null) => {
         if (currentUser) {
-          // Используем метод с логированием
           this.subscription.add(
             this.usersService.toggleUserBlockWithLogging(user.id, newBlockStatus, currentUser).subscribe({
               next: () => {
-                // Перезагружаем пользователей из Firestore
                 this.loadUsers();
                 alert(`Пользователь "${user.username}" успешно ${newBlockStatus ? 'заблокирован' : 'разблокирован'}`);
               },
               error: (error) => {
-                console.error('Error toggling user block:', error);
                 this.error = 'Ошибка изменения статуса блокировки';
                 this.loading = false;
                 alert('Произошла ошибка при изменении статуса блокировки');
@@ -384,16 +335,13 @@ export class UsersListComponent implements OnInit, OnDestroy {
             })
           );
         } else {
-          // Если пользователь не авторизован, изменяем статус без логирования
           this.subscription.add(
             this.usersService.toggleUserBlock(user.id, newBlockStatus).subscribe({
               next: () => {
-                // Перезагружаем пользователей из Firestore
                 this.loadUsers();
                 alert(`Пользователь "${user.username}" успешно ${newBlockStatus ? 'заблокирован' : 'разблокирован'}`);
               },
               error: (error) => {
-                console.error('Error toggling user block:', error);
                 this.error = 'Ошибка изменения статуса блокировки';
                 this.loading = false;
                 alert('Произошла ошибка при изменении статуса блокировки');
@@ -405,26 +353,21 @@ export class UsersListComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Удалить пользователя
   deleteUser(user: User, event: Event): void {
     event.stopPropagation();
 
     if (confirm(`Вы уверены, что хотите удалить пользователя "${user.username}"?\n\nЭто действие:\n• Удалит профиль пользователя из Firestore\n• Разлогинит пользователя (если он авторизован)\n• Сохранит все логи для аудита\n• НЕЛЬЗЯ отменить!`)) {
       this.loading = true;
 
-      // Получаем текущего пользователя для логирования
       this.authService.currentUser$.pipe(take(1)).subscribe((currentUser: User | null) => {
         if (currentUser) {
-          // Используем метод удаления с логированием
           this.subscription.add(
             this.usersService.deleteUserWithLogging(user.id, currentUser).subscribe({
               next: () => {
-                // Перезагружаем пользователей из Firestore
                 this.loadUsers();
                 alert(`Пользователь "${user.username}" успешно удален. Профиль удален из Firestore, логи сохранены для аудита.`);
               },
               error: (error) => {
-                console.error('Error deleting user:', error);
                 this.error = 'Ошибка удаления пользователя';
                 this.loading = false;
                 alert('Произошла ошибка при удалении пользователя: ' + error.message);
@@ -432,16 +375,13 @@ export class UsersListComponent implements OnInit, OnDestroy {
             })
           );
         } else {
-          // Если пользователь не авторизован, удаляем пользователя без логирования
           this.subscription.add(
             this.usersService.deleteUserFromFirestore(user.id).subscribe({
               next: () => {
-                // Перезагружаем пользователей из Firestore
                 this.loadUsers();
                 alert(`Пользователь "${user.username}" успешно удален. Профиль удален из Firestore, логи сохранены для аудита.`);
               },
               error: (error) => {
-                console.error('Error deleting user:', error);
                 this.error = 'Ошибка удаления пользователя';
                 this.loading = false;
                 alert('Произошла ошибка при удалении пользователя: ' + error.message);
@@ -453,7 +393,6 @@ export class UsersListComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Геттеры для удобного доступа к полям формы
   get addUsernameField() { return this.addUserForm.get('username'); }
   get addEmailField() { return this.addUserForm.get('email'); }
   get addPasswordField() { return this.addUserForm.get('password'); }

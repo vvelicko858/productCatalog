@@ -42,29 +42,11 @@ export class CategoriesService {
         } as Category))
       ),
       catchError(error => {
-        console.error('Error fetching categories:', error);
         return of([]);
       })
     );
   }
 
-  // Получить категорию по ID
-  getCategoryById(id: string): Observable<Category | null> {
-    const categoryRef = doc(this.firestore, this.collectionName, id);
-
-    return from(getDoc(categoryRef)).pipe(
-      map(doc => {
-        if (doc.exists()) {
-          return { id: doc.id, ...doc.data() } as Category;
-        }
-        return null;
-      }),
-      catchError(error => {
-        console.error('Error fetching category:', error);
-        return of(null);
-      })
-    );
-  }
 
   // Создать новую категорию
   createCategory(categoryData: CreateCategoryDto): Observable<Category> {
@@ -95,12 +77,11 @@ export class CategoriesService {
       switchMap(category => {
         // Логируем создание категории
         this.logsService.logUserAction(
-          user, 
-          'Создание категории', 
+          user,
+          'Создание категории',
           `Создана категория "${category.name}" с описанием: "${category.description}"`
         ).pipe(
           catchError(logError => {
-            console.warn('Ошибка логирования создания категории:', logError);
             return of(null);
           })
         ).subscribe(); // Не блокируем основной поток
@@ -121,7 +102,6 @@ export class CategoriesService {
 
     return from(updateDoc(categoryRef, cleanData)).pipe(
       catchError(error => {
-        console.error('Error updating category:', error);
         throw error;
       })
     );
@@ -136,33 +116,20 @@ export class CategoriesService {
         if (categoryData.name !== undefined) changes.push(`название: "${categoryData.name}"`);
         if (categoryData.description !== undefined) changes.push(`описание: "${categoryData.description}"`);
         if (categoryData.isActive !== undefined) changes.push(`активность: ${categoryData.isActive ? 'активна' : 'неактивна'}`);
-        
+
         const changeDescription = changes.length > 0 ? `Изменены поля: ${changes.join(', ')}` : 'Обновлена категория';
-        
+
         // Логируем обновление категории
         this.logsService.logUserAction(
-          user, 
-          'Обновление категории', 
+          user,
+          'Обновление категории',
           `${changeDescription} (ID: ${id})`
         ).pipe(
           catchError(logError => {
-            console.warn('Ошибка логирования обновления категории:', logError);
             return of(null);
           })
         ).subscribe(); // Не блокируем основной поток
         return of(void 0);
-      })
-    );
-  }
-
-  // Удалить категорию
-  deleteCategory(id: string): Observable<void> {
-    const categoryRef = doc(this.firestore, this.collectionName, id);
-
-    return from(deleteDoc(categoryRef)).pipe(
-      catchError(error => {
-        console.error('Error deleting category:', error);
-        throw error;
       })
     );
   }
@@ -177,7 +144,6 @@ export class CategoriesService {
         return from(deleteDoc(categoryRef));
       }),
       catchError(error => {
-        console.error('Error deleting category with products:', error);
         throw error;
       })
     );
@@ -189,30 +155,15 @@ export class CategoriesService {
       switchMap(() => {
         // Логируем удаление категории
         this.logsService.logUserAction(
-          user, 
-          'Удаление категории', 
+          user,
+          'Удаление категории',
           `Удалена категория "${categoryName}" (ID: ${id}) и все связанные продукты`
         ).pipe(
           catchError(logError => {
-            console.warn('Ошибка логирования удаления категории:', logError);
             return of(null);
           })
         ).subscribe(); // Не блокируем основной поток
         return of(void 0);
-      })
-    );
-  }
-
-  // Проверить, используется ли категория в продуктах
-  isCategoryUsed(categoryName: string): Observable<boolean> {
-    const productsRef = collection(this.firestore, 'products');
-    const q = query(productsRef, where('category', '==', categoryName), limit(1));
-    
-    return from(getDocs(q)).pipe(
-      map(snapshot => !snapshot.empty),
-      catchError(error => {
-        console.error('Error checking if category is used:', error);
-        return of(false);
       })
     );
   }

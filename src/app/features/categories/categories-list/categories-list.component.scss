@@ -7,11 +7,10 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-// Заголовок секции
 .section-header {
   margin-bottom: 30px;
   text-align: center;
-  
+
   h3 {
     margin: 0 0 10px 0;
     color: #6b5b4d;
@@ -22,7 +21,7 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   .section-description {
     color: #8a7a6d;
     font-size: 1.1rem;
@@ -31,11 +30,10 @@
   }
 }
 
-// Индикатор загрузки
 .loading-indicator {
   text-align: center;
   padding: 60px 20px;
-  
+
   .spinner {
     width: 50px;
     height: 50px;
@@ -45,7 +43,7 @@
     animation: spin 1s ease-in-out infinite;
     margin: 0 auto 20px;
   }
-  
+
   p {
     color: #6b5b4d;
     font-size: 16px;
@@ -60,7 +58,6 @@
   }
 }
 
-// Сообщение об ошибке
 .error-message {
   background: rgba(244, 67, 54, 0.1);
   border: 1px solid rgba(244, 67, 54, 0.3);
@@ -69,14 +66,14 @@
   margin: 20px 0;
   text-align: center;
   backdrop-filter: blur(20px);
-  
+
   p {
     color: #d32f2f;
     margin: 0 0 20px 0;
     font-size: 16px;
     font-weight: 500;
   }
-  
+
   .btn-retry {
     background: linear-gradient(135deg, #d97066 0%, #c25a50 100%);
     color: white;
@@ -88,26 +85,24 @@
     font-weight: 600;
     transition: all 0.3s ease;
     box-shadow: 0 4px 16px rgba(217, 112, 102, 0.3);
-    
+
     &:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(217, 112, 102, 0.4);
     }
-    
+
     &:active {
       transform: translateY(0);
     }
   }
 }
 
-// Сетка категорий
 .categories-grid {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-// Карточка категории
 .category-card {
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(201, 184, 163, 0.2);
@@ -120,13 +115,13 @@
   gap: 20px;
   backdrop-filter: blur(20px);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  
+
   &:hover {
     background: rgba(255, 255, 255, 0.95);
     border-color: rgba(201, 184, 163, 0.4);
     box-shadow: 0 4px 15px rgba(107, 91, 77, 0.1);
   }
-  
+
   &.selected {
     border-color: #c9b8a3;
     background: rgba(201, 184, 163, 0.1);
@@ -134,10 +129,9 @@
   }
 }
 
-// Название категории
 .category-name {
   min-width: 150px;
-  
+
   h4 {
     margin: 0;
     color: #6b5b4d;
@@ -147,10 +141,9 @@
   }
 }
 
-// Описание категории
 .category-description {
   flex: 1;
-  
+
   p {
     margin: 0;
     color: #8a7a6d;
@@ -159,11 +152,10 @@
   }
 }
 
-// Кнопка удаления
 .category-actions {
   display: flex;
   gap: 8px;
-  
+
   .action-btn {
     background: none;
     border: none;
@@ -172,27 +164,27 @@
     border-radius: 6px;
     transition: all 0.2s ease;
     font-size: 1.2rem;
-    
+
     &:hover {
       transform: scale(1.1);
     }
-    
+
     &:active {
       transform: scale(0.95);
     }
-    
+
     &.edit-btn {
       color: #2196f3;
-      
+
       &:hover {
         background-color: rgba(33, 150, 243, 0.1);
         color: #1976d2;
       }
     }
-    
+
     &.delete-btn {
       color: #d32f2f;
-      
+
       &:hover {
         background-color: rgba(244, 67, 54, 0.1);
         color: #b71c1c;
@@ -201,31 +193,30 @@
   }
 }
 
-// Сообщение об отсутствии категорий
 .no-categories {
   text-align: center;
   padding: 60px 20px;
-  
+
   .empty-state {
     background: rgba(255, 255, 255, 0.3);
     border-radius: 16px;
     padding: 40px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(20px);
-    
+
     .empty-icon {
       font-size: 4rem;
       margin-bottom: 20px;
       opacity: 0.6;
     }
-    
+
     h4 {
       color: #6b5b4d;
       font-size: 1.3rem;
       margin: 0 0 10px 0;
       font-weight: 600;
     }
-    
+
     p {
       color: #8a7a6d;
       font-size: 1rem;
@@ -236,7 +227,6 @@
   }
 }
 
-// Модальное окно
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -270,14 +260,14 @@
   align-items: center;
   padding: 25px 30px 20px;
   border-bottom: 1px solid rgba(201, 184, 163, 0.2);
-  
+
   h3 {
     margin: 0;
     color: #6b5b4d;
     font-size: 1.5rem;
     font-weight: 600;
   }
-  
+
   .close-btn {
     background: none;
     border: none;
@@ -292,7 +282,7 @@
     justify-content: center;
     border-radius: 50%;
     transition: all 0.2s ease;
-    
+
     &:hover {
       background: rgba(138, 122, 109, 0.1);
       color: #6b5b4d;
@@ -306,7 +296,7 @@
 
 .form-group {
   margin-bottom: 25px;
-  
+
   label {
     display: block;
     margin-bottom: 8px;
@@ -314,7 +304,7 @@
     font-weight: 600;
     font-size: 0.95rem;
   }
-  
+
   .form-control {
     width: 100%;
     padding: 12px 16px;
@@ -325,35 +315,35 @@
     background: rgba(255, 255, 255, 0.8);
     transition: all 0.2s ease;
     box-sizing: border-box;
-    
+
     &:focus {
       outline: none;
       border-color: #c9b8a3;
       background: rgba(255, 255, 255, 0.95);
       box-shadow: 0 0 0 3px rgba(201, 184, 163, 0.1);
     }
-    
+
     &.invalid {
       border-color: #d32f2f;
       background: rgba(244, 67, 54, 0.05);
     }
-    
+
     &::placeholder {
       color: #8a7a6d;
       opacity: 0.6;
     }
   }
-  
+
   textarea.form-control {
     resize: vertical;
     min-height: 80px;
   }
-  
+
   .error-message {
     margin-top: 6px;
     font-size: 0.85rem;
     color: #d32f2f;
-    
+
     span {
       display: block;
     }
@@ -366,7 +356,7 @@
   cursor: pointer;
   font-weight: 500;
   color: #6b5b4d;
-  
+
   input[type="checkbox"] {
     margin-right: 10px;
     width: 18px;
@@ -382,7 +372,7 @@
   margin-top: 30px;
   padding-top: 20px;
   border-top: 1px solid rgba(201, 184, 163, 0.2);
-  
+
   .btn {
     padding: 12px 24px;
     border: none;
@@ -392,34 +382,34 @@
     cursor: pointer;
     transition: all 0.2s ease;
     min-width: 120px;
-    
+
     &:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none !important;
     }
-    
+
     &.btn-secondary {
       background: rgba(138, 122, 109, 0.1);
       color: #6b5b4d;
       border: 1px solid rgba(138, 122, 109, 0.3);
-      
+
       &:hover:not(:disabled) {
         background: rgba(138, 122, 109, 0.2);
         border-color: rgba(138, 122, 109, 0.5);
       }
     }
-    
+
     &.btn-primary {
       background: linear-gradient(135deg, #c9b8a3 0%, #b8a794 100%);
       color: white;
       box-shadow: 0 4px 16px rgba(201, 184, 163, 0.3);
-      
+
       &:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(201, 184, 163, 0.4);
       }
-      
+
       &:active:not(:disabled) {
         transform: translateY(0);
       }
@@ -427,31 +417,30 @@
   }
 }
 
-// Адаптивность
 @media (max-width: 768px) {
   .categories-list-container {
     padding: 15px;
   }
-  
+
   .section-header h3 {
     font-size: 1.5rem;
   }
-  
+
   .category-card {
     padding: 15px;
     gap: 15px;
     flex-direction: column;
     align-items: flex-start;
-    
+
     .category-name {
       min-width: auto;
       width: 100%;
     }
-    
+
     .category-description {
       width: 100%;
     }
-    
+
     .category-actions {
       align-self: flex-end;
     }
@@ -462,42 +451,41 @@
   .categories-list-container {
     padding: 10px;
   }
-  
+
   .section-header h3 {
     font-size: 1.3rem;
   }
-  
+
   .category-card {
     padding: 12px;
   }
-  
+
   .category-name h4 {
     font-size: 1.1rem;
   }
 }
 
-// Адаптивность для модального окна
 @media (max-width: 768px) {
   .modal-content {
     width: 95%;
     margin: 20px;
   }
-  
+
   .modal-header {
     padding: 20px 25px 15px;
-    
+
     h3 {
       font-size: 1.3rem;
     }
   }
-  
+
   .edit-form {
     padding: 25px;
   }
-  
+
   .form-actions {
     flex-direction: column;
-    
+
     .btn {
       width: 100%;
     }
@@ -509,15 +497,15 @@
     width: 98%;
     margin: 10px;
   }
-  
+
   .modal-header {
     padding: 15px 20px 10px;
-    
+
     h3 {
       font-size: 1.2rem;
     }
   }
-  
+
   .edit-form {
     padding: 20px;
   }

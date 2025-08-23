@@ -1,59 +1,66 @@
-# ProductCatalog
+# 📦 Каталог продуктов (Angular + Firebase)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.11.
+## 🚀 Запуск проекта локально
+1. Установи зависимости:
+   ```bash
+   npm install
+   ```
+2. Запусти dev-сервер:
+  ```bash
+  ng s  
+  ```
+## 🚀 Протестировать задеплоенную версию
+https://productcatalog-2a4a3.firebaseapp.com/
 
-## Development server
+## 🔑 Тестовые аккаунты
+## 1. 👤 Простой пользователь
+  Логин: simple@gmail.com
+  Пароль: simple
 
-To start a local development server, run:
+Возможности:
+Просмотр продуктов (без поля Примечание специальное)
+Добавление и изменение продуктов
 
-```bash
-ng serve
-```
+## 2. 👤 Продвинутый пользователь
+   Логин: advanced@gmail.com
+   Пароль: advanced
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Возможности:
+Просмотр всех полей
+Добавление / изменение / удаление продуктов
+Управление категориями (добавление / изменение / удаление)
 
-## Code scaffolding
+## 3. 👑 Администратор
+   Логин: admin@gmail.com
+   Пароль: admin1
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Возможности:
+Управление пользователями (добавление, блокировка, удаление)
+Изменение паролей пользователей
+Все права продвинутого пользователя
 
-```bash
-ng generate component component-name
-```
+## Описание
+## Аутентификация и авторизация
+Реализована через Firebase Auth
+Роли:
+Простой пользователь
+Продвинутый пользователь
+Администратор
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Логирование
+Логирование действий пользователей (CRUD-операции с продуктами, категориями, пользователями).
 
-```bash
-ng generate --help
-```
+## Категории
+Добавление, изменение, удаление категорий.
+При удалении категории — удаляются все продукты, связанные с ней.
 
-## Building
+## Продукты
+Добавление, изменение, удаление продуктов.
 
-To build the project run:
+## Поиск и фильтрация
+Поиск по каталогу продуктов.
+Фильтрация по категориям.
 
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Технологии
+Frontend: Angular 19
+Backend / Auth / DB: Firebase (Authentication + Firestore Database)

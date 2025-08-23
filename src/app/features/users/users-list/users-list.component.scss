@@ -30,7 +30,6 @@
   }
 }
 
-// Секция добавления пользователя
 .add-user-section {
   margin-bottom: 30px;
   text-align: center;
@@ -65,7 +64,6 @@
   }
 }
 
-// Индикатор загрузки
 .loading-indicator {
   text-align: center;
   padding: 60px 20px;
@@ -94,7 +92,6 @@
   }
 }
 
-// Сообщение об ошибке
 .error-message {
   background: rgba(244, 67, 54, 0.1);
   border: 1px solid rgba(244, 67, 54, 0.3);
@@ -134,14 +131,12 @@
   }
 }
 
-// Сетка пользователей
 .users-grid {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-// Карточка пользователя
 .user-card {
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(201, 184, 163, 0.2);
@@ -177,7 +172,6 @@
   }
 }
 
-// Информация о пользователе
 .user-info {
   display: flex;
   align-items: center;
@@ -248,7 +242,6 @@
   }
 }
 
-// Статус пользователя
 .user-status {
   margin-right: 20px;
 
@@ -265,7 +258,6 @@
   }
 }
 
-// Действия с пользователем
 .user-actions {
   display: flex;
   gap: 8px;
@@ -327,7 +319,6 @@
   }
 }
 
-// Сообщение об отсутствии пользователей
 .no-users {
   text-align: center;
   padding: 60px 20px;
@@ -362,7 +353,6 @@
   }
 }
 
-// Модальные окна
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -552,7 +542,6 @@
   }
 }
 
-// Адаптивность
 @media (max-width: 768px) {
   .users-list-container {
     padding: 15px;

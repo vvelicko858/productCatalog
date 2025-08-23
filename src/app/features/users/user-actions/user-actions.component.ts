@@ -4,7 +4,6 @@ import { LogsService } from '../../../core/services/logs.service';
 import { Log } from '../../../core/models/log';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
-import { User } from '../../../core/models/user';
 import { filter, take } from 'rxjs/operators';
 
 @Component({
@@ -26,7 +25,6 @@ export class UserActionsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Ждем инициализации аутентификации перед загрузкой логов
     this.subscription.add(
       this.authService.isAuthenticated$.pipe(
         filter(() => this.authService.isAuthInitialized()),
@@ -46,18 +44,14 @@ export class UserActionsComponent implements OnInit, OnDestroy {
   loadLogs(): void {
     this.loading = true;
     this.error = null;
-    
-    console.log('Начинаем загрузку логов...');
-    
+
     this.subscription.add(
       this.logsService.getLogsWithLimit(100).subscribe({
         next: (logs) => {
-          console.log('Логи успешно загружены:', logs);
           this.logs = logs;
           this.loading = false;
         },
         error: (error) => {
-          console.error('Ошибка загрузки логов:', error);
           this.error = 'Ошибка при загрузке логов: ' + (error.message || 'Неизвестная ошибка');
           this.loading = false;
         }

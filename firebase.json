@@ -6,7 +6,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "public": "dist/product-catalog",
+    "public": "dist/product-catalog/browser",
     "ignore": [
       "firebase.json",
       "**/.*",

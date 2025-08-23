@@ -7,22 +7,19 @@
       Обновить
     </button>
   </div>
-  
+
   <div class="logs-content">
-    <!-- Состояние загрузки -->
     <div class="loading-state" *ngIf="loading">
       <div class="spinner"></div>
       <p>Загрузка логов...</p>
     </div>
 
-    <!-- Состояние ошибки -->
     <div class="error-state" *ngIf="error && !loading">
       <div class="error-icon">⚠</div>
       <p>{{ error }}</p>
       <button class="retry-btn" (click)="loadLogs()">Повторить</button>
     </div>
 
-    <!-- Список логов -->
     <div class="logs-list" *ngIf="!loading && !error">
       <div class="log-item" *ngFor="let log of logs">
         <div class="log-header">
@@ -39,7 +36,7 @@
             {{ formatTimestamp(log.timestamp) }}
           </div>
         </div>
-        
+
         <div class="log-action">
           <span class="action-text">{{ log.action }}</span>
           <span class="log-details" *ngIf="log.details">
@@ -48,7 +45,6 @@
         </div>
       </div>
 
-      <!-- Сообщение об отсутствии логов -->
       <div class="no-logs" *ngIf="logs.length === 0">
         <div class="no-logs-icon">📝</div>
         <p>Пока нет записей о действиях пользователей</p>

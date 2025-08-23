@@ -26,19 +26,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Подписываемся на изменения пользователя
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
-      
-      // Проверяем, что аутентификация инициализирована
+
       if (this.authService.isAuthInitialized()) {
         this.isLoading = false;
-        // Устанавливаем активную вкладку на основе текущего маршрута
         this.updateActiveActionFromRoute();
       }
     });
 
-    // Подписываемся на события навигации
     this.routerSubscription = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
@@ -79,15 +75,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   setActiveAction(action: string): void {
     this.activeAction = action;
-    
-    // Навигация к соответствующему маршруту
     const route = `/dashboard/${action}`;
     this.router.navigate([route]);
   }
 
   private updateActiveActionFromRoute(): void {
     const url = this.router.url;
-    
+
     if (url.includes('/dashboard/products') || url === '/dashboard') {
       this.activeAction = 'products';
     } else if (url.includes('/dashboard/categories')) {
@@ -97,7 +91,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     } else if (url.includes('/dashboard/users')) {
       this.activeAction = 'users';
     } else {
-      // По умолчанию устанавливаем products
       this.activeAction = 'products';
     }
   }

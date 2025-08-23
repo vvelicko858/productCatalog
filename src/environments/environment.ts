@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  useEmulators: false, // Установите true для использования локальных эмуляторов Firebase
+  useEmulators: false,
   firebase: {
     apiKey: "AIzaSyA2q_uvYHnexppdb5at90XdShmMrgDaJTM",
     authDomain: "productcatalog-2a4a3.firebaseapp.com",

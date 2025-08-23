@@ -29,18 +29,14 @@ export class ProductsListComponent implements OnInit, OnDestroy {
   error: string | null = null;
   currentUser: User | null = null;
 
-  // Модальное окно добавления продукта
   showAddProductModal = false;
   isAddingProduct = false;
 
-  // Модальное окно просмотра продукта
   showViewProductModal = false;
 
-  // Модальное окно редактирования продукта
   showEditProductModal = false;
   isEditingProduct = false;
 
-  // Модальное окно добавления категории
   showAddCategoryModal = false;
   isAddingCategory = false;
 
@@ -91,24 +87,19 @@ export class ProductsListComponent implements OnInit, OnDestroy {
     this.loadCategories();
     this.setupSearch();
 
-    // Подписываемся на изменения текущего пользователя
     this.subscriptions.add(
       this.authService.currentUser$.subscribe(user => {
         this.currentUser = user;
-        // Обновляем формы в зависимости от роли пользователя
         this.updateFormsForUserRole();
       })
     );
   }
 
-  // Обновляем формы в зависимости от роли пользователя
   private updateFormsForUserRole(): void {
     if (this.currentUser?.role === 'Simple') {
-      // Удаляем поле noteSpecial из форм для простых пользователей
       this.addProductForm.removeControl('noteSpecial');
       this.editProductForm.removeControl('noteSpecial');
     } else {
-      // Добавляем поле noteSpecial для продвинутых пользователей и администраторов
       if (!this.addProductForm.contains('noteSpecial')) {
         this.addProductForm.addControl('noteSpecial', this.fb.control(''));
       }
@@ -131,18 +122,15 @@ export class ProductsListComponent implements OnInit, OnDestroy {
         this.products = products;
         this.filteredProducts = products;
         this.isLoading = false;
-        this.isAddingProduct = false; // Сбрасываем состояние добавления
-        this.isEditingProduct = false; // Сбрасываем состояние редактирования
-        // Сбрасываем форму поиска, чтобы показать все продукты
+        this.isAddingProduct = false;
+        this.isEditingProduct = false;
         this.searchForm.reset();
       },
       error: (error) => {
-        console.error('Error loading products:', error);
         this.error = 'Ошибка загрузки продуктов';
         this.isLoading = false;
-        this.isAddingProduct = false; // Сбрасываем состояние добавления
-        this.isEditingProduct = false; // Сбрасываем состояние редактирования
-        // Сбрасываем форму поиска, чтобы показать все продукты
+        this.isAddingProduct = false;
+        this.isEditingProduct = false;
         this.searchForm.reset();
       }
     });
@@ -169,12 +157,9 @@ export class ProductsListComponent implements OnInit, OnDestroy {
       distinctUntilChanged(),
       switchMap(values => {
         const { search, category } = values;
-
-        // Используем комбинированный метод поиска и фильтрации
         return this.productsService.searchAndFilterProducts(search || '', category || '');
       }),
       catchError(error => {
-        console.error('Search error:', error);
         return of([]);
       })
     ).subscribe({
@@ -191,22 +176,16 @@ export class ProductsListComponent implements OnInit, OnDestroy {
     this.showViewProductModal = true;
   }
 
-  // Логика добавления продукта
   addProduct(): void {
     this.showAddProductModal = true;
     this.addProductForm.reset();
-
-    // Обновляем форму в зависимости от роли пользователя после сброса
     this.updateFormsForUserRole();
   }
 
   closeAddProductModal(): void {
     this.showAddProductModal = false;
     this.addProductForm.reset();
-
-    // Обновляем форму в зависимости от роли пользователя после сброса
     this.updateFormsForUserRole();
-
     this.isAddingProduct = false;
     this.selectedProduct = null;
   }
@@ -223,12 +202,10 @@ export class ProductsListComponent implements OnInit, OnDestroy {
         noteGeneral: this.addProductForm.get('noteGeneral')?.value || undefined
       };
 
-      // Добавляем noteSpecial только если пользователь не простой
       if (this.currentUser?.role !== 'Simple') {
         productData.noteSpecial = this.addProductForm.get('noteSpecial')?.value || undefined;
       }
 
-      // Фильтруем пустые строки
       if (productData.noteGeneral === '') {
         productData.noteGeneral = undefined;
       }
@@ -236,39 +213,30 @@ export class ProductsListComponent implements OnInit, OnDestroy {
         productData.noteSpecial = undefined;
       }
 
-      // Получаем текущего пользователя для логирования
       this.authService.currentUser$.pipe(take(1)).subscribe((currentUser: User | null) => {
         if (currentUser) {
           this.productsService.createProductWithLogging(productData, currentUser).subscribe({
             next: (newProduct) => {
-              // Перезагружаем продукты из Firestore для избежания дублирования
               this.loadProducts();
               this.resetSelectedProduct();
               this.closeAddProductModal();
-              // Сбрасываем форму поиска, чтобы показать все продукты
               this.searchForm.reset();
-              console.log('Продукт успешно добавлен:', newProduct);
               this.showSuccessMessage('Продукт успешно добавлен!');
             },
             error: (error) => {
-              console.error('Error creating product:', error);
               this.error = 'Ошибка при добавлении продукта';
               this.isAddingProduct = false;
             }
           });
         } else {
-          // Если пользователь не авторизован, создаем продукт без логирования
           this.productsService.createProduct(productData).subscribe({
             next: (newProduct) => {
-              // Перезагружаем продукты из Firestore для избежания дублирования
               this.loadProducts();
               this.resetSelectedProduct();
               this.closeAddProductModal();
-              // Сбрасываем форму поиска, чтобы показать все продукты
               this.showSuccessMessage('Продукт успешно добавлен!');
             },
             error: (error) => {
-              console.error('Error creating product:', error);
               this.error = 'Ошибка при добавлении продукта';
               this.isAddingProduct = false;
             }
@@ -285,9 +253,7 @@ export class ProductsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Логика добавления категории
   addCategory(): void {
-    // Проверяем роль пользователя - простые пользователи не могут создавать категории
     if (this.currentUser?.role === 'Simple') {
       alert('У вас нет прав для создания категорий. Обратитесь к администратору.');
       return;
@@ -306,7 +272,6 @@ export class ProductsListComponent implements OnInit, OnDestroy {
   }
 
   onSubmitAddCategory(): void {
-    // Проверяем роль пользователя - простые пользователи не могут создавать категории
     if (this.currentUser?.role === 'Simple') {
       alert('У вас нет прав для создания категорий. Обратитесь к администратору.');
       return;
@@ -321,47 +286,29 @@ export class ProductsListComponent implements OnInit, OnDestroy {
         isActive: this.addCategoryForm.get('isActive')?.value
       };
 
-      // Получаем текущего пользователя для логирования
       this.authService.currentUser$.pipe(take(1)).subscribe((currentUser: User | null) => {
         if (currentUser) {
           this.categoriesService.createCategoryWithLogging(categoryData, currentUser).subscribe({
             next: (newCategory) => {
-              // Добавляем новую категорию в список
               this.categories.push(newCategory.name);
-
-              // Закрываем модальное окно
               this.closeAddCategoryModal();
-
-              console.log('Категория успешно добавлена:', newCategory);
               this.showSuccessMessage('Категория успешно добавлена!');
-
-              // Обновляем список категорий в форме продукта
               this.addProductForm.patchValue({ category: newCategory.name });
             },
             error: (error) => {
-              console.error('Error creating category:', error);
               this.error = 'Ошибка при добавлении категории';
               this.isAddingCategory = false;
             }
           });
         } else {
-          // Если пользователь не авторизован, создаем категорию без логирования
           this.categoriesService.createCategory(categoryData).subscribe({
             next: (newCategory) => {
-              // Добавляем новую категорию в список
               this.categories.push(newCategory.name);
-
-              // Закрываем модальное окно
               this.closeAddCategoryModal();
-
-              console.log('Категория успешно добавлена:', newCategory);
               this.showSuccessMessage('Категория успешно добавлена!');
-
-              // Обновляем список категорий в форме продукта
               this.addProductForm.patchValue({ category: newCategory.name });
             },
             error: (error) => {
-              console.error('Error creating category:', error);
               this.error = 'Ошибка при добавлении категории';
               this.isAddingCategory = false;
             }
@@ -383,51 +330,37 @@ export class ProductsListComponent implements OnInit, OnDestroy {
   }
 
   deleteProduct(product: Product): void {
-    // Проверяем роль пользователя - простые пользователи не могут удалять продукты
     if (this.currentUser?.role === 'Simple') {
       alert('У вас нет прав для удаления продуктов. Обратитесь к администратору.');
       return;
     }
 
     if (confirm(`Вы уверены, что хотите удалить продукт "${product.name}"?`)) {
-      // Получаем текущего пользователя для логирования
       this.authService.currentUser$.pipe(take(1)).subscribe((currentUser: User | null) => {
         if (currentUser) {
           this.productsService.deleteProductWithLogging(product.id, currentUser).subscribe({
             next: () => {
-              // Перезагружаем продукты из Firestore для избежания дублирования
               this.loadProducts();
-              // Сбрасываем форму поиска, чтобы показать все продукты
               this.searchForm.reset();
-
               if (this.selectedProduct?.id === product.id) {
                 this.selectedProduct = null;
               }
-
-              console.log('Продукт успешно удален');
             },
             error: (error) => {
-              console.error('Error deleting product:', error);
               alert('Ошибка при удалении продукта');
             }
           });
         } else {
-          // Если пользователь не авторизован, удаляем продукт без логирования
           this.productsService.deleteProduct(product.id).subscribe({
             next: () => {
-              // Перезагружаем продукты из Firestore для избежания дублирования
               this.loadProducts();
-              // Сбрасываем форму поиска, чтобы показать все продукты
               this.searchForm.reset();
 
               if (this.selectedProduct?.id === product.id) {
                 this.selectedProduct = null;
               }
-
-              console.log('Продукт успешно удален');
-            },
+              },
             error: (error) => {
-              console.error('Error deleting product:', error);
               alert('Ошибка при удалении продукта');
             }
           });
@@ -448,22 +381,17 @@ export class ProductsListComponent implements OnInit, OnDestroy {
       noteGeneral: product.noteGeneral || ''
     };
 
-    // Добавляем noteSpecial только если пользователь не простой
     if (this.currentUser?.role !== 'Simple') {
       formData.noteSpecial = product.noteSpecial || '';
     }
 
     this.editProductForm.patchValue(formData);
-    console.log('Редактирование продукта:', product);
   }
 
   closeEditProductModal(): void {
     this.showEditProductModal = false;
     this.editProductForm.reset();
-
-    // Обновляем форму в зависимости от роли пользователя после сброса
     this.updateFormsForUserRole();
-
     this.isEditingProduct = false;
     this.selectedProduct = null;
   }
@@ -480,12 +408,10 @@ export class ProductsListComponent implements OnInit, OnDestroy {
         noteGeneral: this.editProductForm.get('noteGeneral')?.value || undefined
       };
 
-      // Добавляем noteSpecial только если пользователь не простой
       if (this.currentUser?.role !== 'Simple') {
         productData.noteSpecial = this.editProductForm.get('noteSpecial')?.value || undefined;
       }
 
-      // Фильтруем пустые строки
       if (productData.noteGeneral === '') {
         productData.noteGeneral = undefined;
       }
@@ -493,39 +419,29 @@ export class ProductsListComponent implements OnInit, OnDestroy {
         productData.noteSpecial = undefined;
       }
 
-      // Получаем текущего пользователя для логирования
       this.authService.currentUser$.pipe(take(1)).subscribe((currentUser: User | null) => {
         if (currentUser && this.selectedProduct) {
           this.productsService.updateProductWithLogging(this.selectedProduct.id, productData, currentUser).subscribe({
             next: () => {
-              // Перезагружаем продукты из Firestore для избежания дублирования
               this.loadProducts();
               this.closeEditProductModal();
-              // Сбрасываем форму поиска, чтобы показать все продукты
               this.searchForm.reset();
-              console.log('Продукт успешно обновлен');
               this.showSuccessMessage('Продукт успешно обновлен!');
             },
             error: (error) => {
-              console.error('Error updating product:', error);
               this.error = 'Ошибка при обновлении продукта';
               this.isEditingProduct = false;
             }
           });
         } else if (this.selectedProduct) {
-          // Если пользователь не авторизован, обновляем продукт без логирования
           this.productsService.updateProduct(this.selectedProduct.id, productData).subscribe({
             next: () => {
-              // Перезагружаем продукты из Firestore для избежания дублирования
               this.loadProducts();
               this.closeEditProductModal();
-              // Сбрасываем форму поиска, чтобы показать все продукты
               this.searchForm.reset();
-              console.log('Продукт успешно обновлен');
               this.showSuccessMessage('Продукт успешно обновлен!');
             },
             error: (error) => {
-              console.error('Error updating product:', error);
               this.error = 'Ошибка при обновлении продукта';
               this.isEditingProduct = false;
             }
@@ -555,19 +471,16 @@ export class ProductsListComponent implements OnInit, OnDestroy {
     this.selectedProduct = null;
   }
 
-  // Геттеры для удобного доступа к полям формы
   get nameField() { return this.addProductForm.get('name'); }
   get categoryField() { return this.addProductForm.get('category'); }
   get descriptionField() { return this.addProductForm.get('description'); }
   get priceField() { return this.addProductForm.get('price'); }
 
-  // Геттеры для формы редактирования продукта
   get editNameField() { return this.editProductForm.get('name'); }
   get editCategoryField() { return this.editProductForm.get('category'); }
   get editDescriptionField() { return this.editProductForm.get('description'); }
   get editPriceField() { return this.editProductForm.get('price'); }
 
-  // Геттеры для формы категории
   get categoryNameField() { return this.addCategoryForm.get('name'); }
   get categoryDescriptionField() { return this.addCategoryForm.get('description'); }
 }

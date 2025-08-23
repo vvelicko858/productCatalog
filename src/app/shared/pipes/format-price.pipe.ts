@@ -17,7 +17,6 @@ export class FormatPricePipe implements PipeTransform {
       return '0 BYN';
     }
 
-    // Форматируем число с разделителями тысяч и двумя знаками после запятой
     const formattedValue = numValue.toLocaleString('ru-RU', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2

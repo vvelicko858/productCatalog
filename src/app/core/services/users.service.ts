@@ -30,7 +30,6 @@ export class UsersService {
         } as User))
       ),
       catchError(error => {
-        console.error('Error fetching users:', error);
         return of([]);
       })
     );
@@ -80,47 +79,6 @@ export class UsersService {
     );
   }
 
-  // Создать нового пользователя (только в Firestore - для обратной совместимости)
-  createUser(userData: Omit<User, 'id'>): Observable<User> {
-    const usersRef = collection(this.firestore, this.collectionName);
-
-    const newUser = {
-      ...userData,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    return from(addDoc(usersRef, newUser)).pipe(
-      map(docRef => ({
-        id: docRef.id,
-        ...newUser
-      } as User)),
-      catchError(error => {
-        console.error('Error creating user:', error);
-        throw error;
-      })
-    );
-  }
-
-  // Создать нового пользователя с логированием (только в Firestore)
-  createUserWithAuthAndLogging(email: string, password: string, username: string, role: string, adminUser: User): Observable<User> {
-    return this.createUserWithAuth(email, password, username, role).pipe(
-      switchMap(user => {
-        // Логируем создание пользователя
-        this.logsService.logUserAction(
-          adminUser,
-          'Создание пользователя администратором',
-          `Администратор ${adminUser.username} создал пользователя "${user.username}" с email "${user.email}" и ролью "${user.role}" в Firestore. Пользователь сможет войти в систему при первом входе.`
-        ).pipe(
-          catchError(logError => {
-            console.warn('Ошибка логирования создания пользователя:', logError);
-            return of(null);
-          })
-        ).subscribe(); // Не блокируем основной поток
-        return of(user);
-      })
-    );
-  }
 
   // Обновить пользователя
   updateUser(id: string, userData: Partial<User>): Observable<void> {
@@ -133,7 +91,6 @@ export class UsersService {
 
     return from(updateDoc(userRef, updateData)).pipe(
       catchError(error => {
-        console.error('Error updating user:', error);
         throw error;
       })
     );
@@ -159,7 +116,6 @@ export class UsersService {
           `${changeDescription} (ID: ${id})`
         ).pipe(
           catchError(logError => {
-            console.warn('Ошибка логирования обновления пользователя:', logError);
             return of(null);
           })
         ).subscribe(); // Не блокируем основной поток
@@ -175,7 +131,6 @@ export class UsersService {
         if (!user) {
           throw new Error('Пользователь не найден');
         }
-
         // Создаем batch для атомарных операций
         const batch = writeBatch(this.firestore);
 
@@ -184,11 +139,7 @@ export class UsersService {
         batch.delete(userRef);
 
         // 2. НЕ удаляем логи пользователя - оставляем для аудита
-        // Логи важны для отслеживания действий пользователя даже после удаления
-
         // 3. ВАЖНО: Удаление из Firebase Auth невозможно в клиентском коде
-        // Для полного удаления нужен Firebase Admin SDK на сервере
-        // Здесь мы удаляем только профиль из Firestore
 
         // Если удаляем текущего пользователя, сначала разлогиниваем
         if (this.auth.currentUser && this.auth.currentUser.uid === id) {
@@ -204,7 +155,6 @@ export class UsersService {
         }
       }),
       catchError(error => {
-        console.error('Error deleting user from Firestore:', error);
         throw error;
       })
     );
@@ -227,7 +177,6 @@ export class UsersService {
               `Удален пользователь "${user.username}" (${user.email}) с ID: ${id}. Профиль удален из Firestore, логи сохранены для аудита. ПРИМЕЧАНИЕ: Для полного удаления из Firebase Auth требуется серверная часть.`
             ).pipe(
               catchError(logError => {
-                console.warn('Ошибка логирования удаления пользователя:', logError);
                 return of(null);
               })
             ).subscribe(); // Не блокируем основной поток
@@ -256,7 +205,6 @@ export class UsersService {
           `Пользователь (ID: ${id}) ${status}`
         ).pipe(
           catchError(logError => {
-            console.warn('Ошибка логирования блокировки/разблокировки пользователя:', logError);
             return of(null);
           })
         ).subscribe(); // Не блокируем основной поток
@@ -264,12 +212,6 @@ export class UsersService {
       })
     );
   }
-
-  // Изменить роль пользователя
-  changeUserRole(id: string, newRole: string): Observable<void> {
-    return this.updateUser(id, { role: newRole as any });
-  }
-
 
   /** сбросить пароль пользователя через email */
   resetUserPassword(email: string): Observable<void> {
@@ -292,7 +234,6 @@ export class UsersService {
           `Отправлен email для сброса пароля пользователю с email: ${email}`
         ).pipe(
           catchError(logError => {
-            console.warn('Ошибка логирования сброса пароля:', logError);
             return of(null);
           })
         ).subscribe(); // Не блокируем основной поток
@@ -300,7 +241,6 @@ export class UsersService {
       })
     );
   }
-
 
 
   // Генерируем уникальный ID для пользователя

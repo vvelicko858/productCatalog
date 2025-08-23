@@ -31,10 +31,8 @@ export class AuthService {
   ) {
     // Проверяем, что Firebase инициализирован
     if (this.auth) {
-      console.log('AuthService: Firebase Auth available, initializing...');
       this.initializeAuth();
     } else {
-      console.error('AuthService: Firebase Auth not initialized');
       this.isInitialized = true;
       this.authStateSubject.next(false);
       this.currentUserSubject.next(null);
@@ -43,12 +41,9 @@ export class AuthService {
 
   private initializeAuth() {
     try {
-      console.log('Initializing auth...');
-
       // Устанавливаем таймаут для инициализации
       setTimeout(() => {
         if (!this.isInitialized) {
-          console.log('Auth initialization timeout, setting initialized to true');
           this.isInitialized = true;
           // Если после таймаута пользователь не определен, устанавливаем false
           if (!this.auth.currentUser) {
@@ -60,8 +55,6 @@ export class AuthService {
 
       // Подписываемся на изменения состояния аутентификации
       onAuthStateChanged(this.auth, async (firebaseUser) => {
-        console.log('Auth state changed:', firebaseUser ? 'User logged in' : 'User logged out');
-
         if (firebaseUser) {
           // Пользователь авторизован
           this.authStateSubject.next(true);
@@ -71,7 +64,6 @@ export class AuthService {
             const userDoc = await getDoc(doc(this.firestore, `users/${firebaseUser.uid}`));
             if (userDoc.exists()) {
               const userData = userDoc.data() as AppUser;
-              console.log('User data loaded from Firestore:', userData);
               this.currentUserSubject.next(userData);
             } else {
               // Если документ не найден, создаем базового пользователя
@@ -82,11 +74,9 @@ export class AuthService {
                 role: 'Simple',
                 isBlocked: false
               };
-              console.log('Creating basic user:', basicUser);
               this.currentUserSubject.next(basicUser);
             }
           } catch (error) {
-            console.error('Error loading user data from Firestore:', error);
             // В случае ошибки создаем базового пользователя
             const basicUser: AppUser = {
               id: firebaseUser.uid,
@@ -99,22 +89,18 @@ export class AuthService {
           }
         } else {
           // Пользователь не авторизован
-          console.log('No user authenticated');
           this.authStateSubject.next(false);
           this.currentUserSubject.next(null);
         }
 
         this.isInitialized = true;
-        console.log('Auth initialization completed');
       }, (error) => {
-        console.error('Auth state change error:', error);
         this.isInitialized = true;
         this.authStateSubject.next(false);
         this.currentUserSubject.next(null);
       });
 
     } catch (error) {
-      console.error('Auth initialization error:', error);
       this.isInitialized = true;
       this.authStateSubject.next(false);
       this.currentUserSubject.next(null);
@@ -143,7 +129,6 @@ export class AuthService {
             // Логируем регистрацию
             return this.logsService.logUserAction(newUser, 'Регистрация нового пользователя', `Создан аккаунт для ${email}`).pipe(
               catchError(logError => {
-                console.warn('Ошибка логирования регистрации:', logError);
                 return of(null); // Продолжаем выполнение даже при ошибке логирования
               })
             );
@@ -169,7 +154,6 @@ export class AuthService {
               // Логируем вход в систему
               this.logsService.logUserAction(user, 'Вход в систему', `Пользователь ${user.username} вошел в систему`).pipe(
                 catchError(logError => {
-                  console.warn('Ошибка логирования входа:', logError);
                   return of(null);
                 })
               ).subscribe(); // Не блокируем основной поток
@@ -182,7 +166,7 @@ export class AuthService {
                 role: 'Simple',
                 isBlocked: false
               };
-              
+
               this.logsService.logUserAction(basicUser, 'Вход в систему', `Пользователь ${basicUser.username} вошел в систему`).pipe(
                 catchError(logError => {
                   console.warn('Ошибка логирования входа:', logError);
@@ -203,7 +187,7 @@ export class AuthService {
   /** выход из системы */
   logout(): Observable<void> {
     const currentUser = this.currentUserSubject.value;
-    
+
     return from(this.auth.signOut()).pipe(
       tap(() => {
         // Очищаем локальные данные
@@ -215,7 +199,6 @@ export class AuthService {
         if (currentUser) {
           this.logsService.logUserAction(currentUser, 'Выход из системы', `Пользователь ${currentUser.username} вышел из системы`).pipe(
             catchError(logError => {
-              console.warn('Ошибка логирования выхода:', logError);
               return of(null);
             })
           ).subscribe(); // Не блокируем основной поток
@@ -228,81 +211,11 @@ export class AuthService {
     );
   }
 
-  /** получение текущего пользователя Firebase */
-  getCurrentUser(): User | null {
-    return this.auth.currentUser;
-  }
 
   /** проверка, инициализирована ли аутентификация */
   isAuthInitialized(): boolean {
     return this.isInitialized;
   }
 
-  /** обновление данных пользователя из Firebase */
-  private async updateUserFromFirebase(firebaseUser: User): Promise<void> {
-    try {
-      const userDoc = await getDoc(doc(this.firestore, `users/${firebaseUser.uid}`));
-      if (userDoc.exists()) {
-        const userData = userDoc.data() as AppUser;
-        this.currentUserSubject.next(userData);
-      } else {
-        // Если документ не найден, создаем базового пользователя
-        const basicUser: AppUser = {
-          id: firebaseUser.uid,
-          username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
-          email: firebaseUser.email || '',
-          role: 'Simple',
-          isBlocked: false
-        };
-        this.currentUserSubject.next(basicUser);
-      }
-    } catch (error) {
-      console.error('Error updating user from Firebase:', error);
-      // В случае ошибки создаем базового пользователя
-      const basicUser: AppUser = {
-        id: firebaseUser.uid,
-        username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
-        email: firebaseUser.email || '',
-        role: 'Simple',
-        isBlocked: false
-      };
-      this.currentUserSubject.next(basicUser);
-    }
-  }
-
-  /** обновление данных пользователя в Firestore */
-  updateUserData(userData: Partial<AppUser>): Observable<void> {
-    const currentUser = this.currentUserSubject.value;
-    if (!currentUser) {
-      return of(void 0);
-    }
-
-    const updatedUser = { ...currentUser, ...userData };
-    const userRef = doc(this.firestore, `users/${currentUser.id}`);
-
-    return from(setDoc(userRef, updatedUser, { merge: true })).pipe(
-      map(() => {
-        this.currentUserSubject.next(updatedUser);
-        
-        // Логируем обновление профиля
-        this.logsService.logUserAction(
-          updatedUser, 
-          'Обновление профиля', 
-          `Пользователь ${updatedUser.username} обновил свой профиль`
-        ).pipe(
-          catchError(logError => {
-            console.warn('Ошибка логирования обновления профиля:', logError);
-            return of(null);
-          })
-        ).subscribe();
-      })
-    );
-  }
-
-  /** проверка роли пользователя */
-  hasRole(role: string): boolean {
-    const currentUser = this.currentUserSubject.value;
-    return currentUser?.role === role;
-  }
 
 }

@@ -1,11 +1,9 @@
 <div class="users-list-container">
-  <!-- Заголовок секции -->
   <div class="section-header">
     <h3>Список пользователей</h3>
     <p class="section-description">Управление пользователями системы, их ролями и статусами</p>
   </div>
 
-  <!-- Кнопка добавления пользователя -->
   <div class="add-user-section">
     <button class="btn btn-primary add-user-btn" (click)="addUser()">
       <span class="btn-icon">👤</span>
@@ -13,29 +11,24 @@
     </button>
   </div>
 
-  <!-- Индикатор загрузки -->
   <div *ngIf="loading" class="loading-indicator">
     <div class="spinner"></div>
     <p>Загрузка пользователей...</p>
   </div>
 
-  <!-- Сообщение об ошибке -->
   <div *ngIf="error" class="error-message">
     <p>{{ error }}</p>
     <button (click)="loadUsers()" class="btn-retry">Повторить загрузку</button>
   </div>
 
-  <!-- Список пользователей -->
   <div *ngIf="!loading && !error" class="users-content">
-    <!-- Сетка пользователей -->
     <div class="users-grid">
-      <div class="user-card" 
+      <div class="user-card"
            *ngFor="let user of users"
            [class.selected]="selectedUser?.id === user.id"
            [class.blocked]="user.isBlocked"
            (click)="selectUser(user)">
-        
-        <!-- Аватар и основная информация -->
+
         <div class="user-info">
           <div class="user-avatar">
             <span class="avatar-text">{{ user.username.charAt(0).toUpperCase() }}</span>
@@ -49,31 +42,29 @@
           </div>
         </div>
 
-        <!-- Статус блокировки -->
         <div class="user-status">
           <span *ngIf="user.isBlocked" class="blocked-status">🚫 Заблокирован</span>
           <span *ngIf="!user.isBlocked" class="active-status">✅ Активен</span>
         </div>
 
-        <!-- Действия с пользователем -->
         <div class="user-actions">
-          <button class="action-btn edit-btn" 
+          <button class="action-btn edit-btn"
                   (click)="editUser(user, $event)"
                   title="Редактировать пользователя">
             ✏️
           </button>
-          
-          <button class="action-btn reset-password-btn" 
+
+          <button class="action-btn reset-password-btn"
                   (click)="resetPassword(user, $event)"
                   title="Сбросить пароль">
             🔑
           </button>
-          <button class="action-btn block-btn" 
+          <button class="action-btn block-btn"
                   (click)="toggleUserBlock(user, $event)"
                   [title]="user.isBlocked ? 'Разблокировать пользователя' : 'Заблокировать пользователя'">
             {{ user.isBlocked ? '🔓' : '🚫' }}
           </button>
-          <button class="action-btn delete-btn" 
+          <button class="action-btn delete-btn"
                   (click)="deleteUser(user, $event)"
                   title="Удалить пользователя">
             🗑️
@@ -82,7 +73,6 @@
       </div>
     </div>
 
-    <!-- Сообщение если пользователей нет -->
     <div *ngIf="users.length === 0" class="no-users">
       <div class="empty-state">
         <div class="empty-icon">👥</div>
@@ -93,21 +83,19 @@
   </div>
 </div>
 
-<!-- Модальное окно добавления пользователя -->
 <div *ngIf="showAddUserModal" class="modal-overlay" (click)="closeAddUserModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3>Добавить пользователя</h3>
       <button class="close-btn" (click)="closeAddUserModal()">&times;</button>
     </div>
-    
+
     <form [formGroup]="addUserForm" (ngSubmit)="onSubmitAddUser()" class="user-form">
-      <!-- Имя пользователя -->
       <div class="form-group">
         <label for="addUsername">Имя пользователя *</label>
-        <input 
+        <input
           id="addUsername"
-          type="text" 
+          type="text"
           formControlName="username"
           class="form-control"
           [class.invalid]="addUsernameField?.invalid && addUsernameField?.touched"
@@ -118,12 +106,11 @@
         </div>
       </div>
 
-      <!-- Email -->
       <div class="form-group">
         <label for="addEmail">Email *</label>
-        <input 
+        <input
           id="addEmail"
-          type="email" 
+          type="email"
           formControlName="email"
           class="form-control"
           [class.invalid]="addEmailField?.invalid && addEmailField?.touched"
@@ -134,12 +121,11 @@
         </div>
       </div>
 
-      <!-- Пароль -->
       <div class="form-group">
         <label for="addPassword">Пароль *</label>
-        <input 
+        <input
           id="addPassword"
-          type="password" 
+          type="password"
           formControlName="password"
           class="form-control"
           [class.invalid]="addPasswordField?.invalid && addPasswordField?.touched"
@@ -150,10 +136,9 @@
         </div>
       </div>
 
-      <!-- Роль -->
       <div class="form-group">
         <label for="addRole">Роль *</label>
-        <select 
+        <select
           id="addRole"
           formControlName="role"
           class="form-control">
@@ -161,7 +146,6 @@
         </select>
       </div>
 
-      <!-- Статус блокировки -->
       <div class="form-group">
         <label class="checkbox-label">
           <input type="checkbox" formControlName="isBlocked">
@@ -170,16 +154,15 @@
         </label>
       </div>
 
-      <!-- Кнопки действий -->
       <div class="form-actions">
-        <button type="button" 
-                class="btn btn-secondary" 
+        <button type="button"
+                class="btn btn-secondary"
                 (click)="closeAddUserModal()"
                 [disabled]="isAddingUser">
           Отмена
         </button>
-        <button type="submit" 
-                class="btn btn-primary" 
+        <button type="submit"
+                class="btn btn-primary"
                 [disabled]="addUserForm.invalid || isAddingUser">
           <span *ngIf="!isAddingUser">Добавить пользователя</span>
           <span *ngIf="isAddingUser">Добавление...</span>
@@ -189,21 +172,19 @@
   </div>
 </div>
 
-<!-- Модальное окно редактирования пользователя -->
 <div *ngIf="showEditUserModal" class="modal-overlay" (click)="closeEditUserModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3>Редактировать пользователя</h3>
       <button class="close-btn" (click)="closeEditUserModal()">&times;</button>
     </div>
-    
+
     <form [formGroup]="editUserForm" (ngSubmit)="onSubmitEditUser()" class="user-form">
-      <!-- Имя пользователя -->
       <div class="form-group">
         <label for="editUsername">Имя пользователя *</label>
-        <input 
+        <input
           id="editUsername"
-          type="text" 
+          type="text"
           formControlName="username"
           class="form-control"
           [class.invalid]="editUsernameField?.invalid && editUsernameField?.touched"
@@ -214,12 +195,11 @@
         </div>
       </div>
 
-      <!-- Email -->
       <div class="form-group">
         <label for="editEmail">Email *</label>
-        <input 
+        <input
           id="editEmail"
-          type="email" 
+          type="email"
           formControlName="email"
           class="form-control"
           [class.invalid]="editEmailField?.invalid && editEmailField?.touched"
@@ -230,10 +210,9 @@
         </div>
       </div>
 
-      <!-- Роль -->
       <div class="form-group">
         <label for="editRole">Роль *</label>
-        <select 
+        <select
           id="editRole"
           formControlName="role"
           class="form-control">
@@ -241,7 +220,6 @@
         </select>
       </div>
 
-      <!-- Статус блокировки -->
       <div class="form-group">
         <label class="checkbox-label">
           <input type="checkbox" formControlName="isBlocked">
@@ -250,16 +228,15 @@
         </label>
       </div>
 
-      <!-- Кнопки действий -->
       <div class="form-actions">
-        <button type="button" 
-                class="btn btn-secondary" 
+        <button type="button"
+                class="btn btn-secondary"
                 (click)="closeEditUserModal()"
                 [disabled]="isEditingUser">
           Отмена
         </button>
-        <button type="submit" 
-                class="btn btn-primary" 
+        <button type="submit"
+                class="btn btn-primary"
                 [disabled]="editUserForm.invalid || isEditingUser">
           <span *ngIf="!isEditingUser">Сохранить изменения</span>
           <span *ngIf="isEditingUser">Сохранение...</span>

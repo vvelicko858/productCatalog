@@ -1,5 +1,4 @@
 <div class="products-list-container">
-  <!-- Панель управления -->
   <div class="control-panel">
     <form [formGroup]="searchForm" class="search-section">
       <input
@@ -123,7 +122,6 @@
   </div>
 </div>
 
-<!-- Модальное окно добавления продукта -->
 <div class="modal-overlay" *ngIf="showAddProductModal" (click)="closeAddProductModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -218,7 +216,6 @@
   </div>
 </div>
 
-<!-- Модальное окно добавления категории -->
 <div class="modal-overlay" *ngIf="showAddCategoryModal" (click)="closeAddCategoryModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -276,7 +273,6 @@
   </div>
 </div>
 
-<!-- Модальное окно редактирования продукта -->
 <div class="modal-overlay" *ngIf="showEditProductModal" (click)="closeEditProductModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">

@@ -38,7 +38,6 @@ export const authGuard: CanActivateFn = (route, state) => {
       return false;
     }),
     catchError((error) => {
-      console.error('Auth guard error:', error);
       router.navigate(['/auth/login']);
       return of(false);
     })

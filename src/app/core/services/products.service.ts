@@ -40,26 +40,7 @@ export class ProductsService {
         } as Product))
       ),
       catchError(error => {
-        console.error('Error fetching products:', error);
         return of([]);
-      })
-    );
-  }
-
-  // Получить продукт по ID
-  getProductById(id: string): Observable<Product | null> {
-    const productRef = doc(this.firestore, this.collectionName, id);
-
-    return from(getDoc(productRef)).pipe(
-      map(doc => {
-        if (doc.exists()) {
-          return { id: doc.id, ...doc.data() } as Product;
-        }
-        return null;
-      }),
-      catchError(error => {
-        console.error('Error fetching product:', error);
-        return of(null);
       })
     );
   }
@@ -67,8 +48,6 @@ export class ProductsService {
   // Создать новый продукт
   createProduct(productData: CreateProductDto): Observable<Product> {
     const productsRef = collection(this.firestore, this.collectionName);
-
-    // Создаем объект с правильной типизацией
     const newProduct: any = {
       name: productData.name,
       category: productData.category,
@@ -93,7 +72,6 @@ export class ProductsService {
         ...newProduct
       } as Product)),
       catchError(error => {
-        console.error('Error creating product:', error);
         throw error;
       })
     );
@@ -110,7 +88,6 @@ export class ProductsService {
           `Создан продукт "${product.name}" в категории "${product.category}"`
         ).pipe(
           catchError(logError => {
-            console.warn('Ошибка логирования создания продукта:', logError);
             return of(null);
           })
         ).subscribe(); // Не блокируем основной поток
@@ -131,7 +108,6 @@ export class ProductsService {
 
     return from(updateDoc(productRef, cleanData)).pipe(
       catchError(error => {
-        console.error('Error updating product:', error);
         throw error;
       })
     );
@@ -148,7 +124,6 @@ export class ProductsService {
           `Обновлен продукт с ID: ${id}`
         ).pipe(
           catchError(logError => {
-            console.warn('Ошибка логирования обновления продукта:', logError);
             return of(null);
           })
         ).subscribe(); // Не блокируем основной поток
@@ -163,7 +138,6 @@ export class ProductsService {
 
     return from(deleteDoc(productRef)).pipe(
       catchError(error => {
-        console.error('Error deleting product:', error);
         throw error;
       })
     );
@@ -180,7 +154,6 @@ export class ProductsService {
           `Удален продукт с ID: ${id}`
         ).pipe(
           catchError(logError => {
-            console.warn('Ошибка логирования удаления продукта:', logError);
             return of(null);
           })
         ).subscribe(); // Не блокируем основной поток
@@ -201,13 +174,12 @@ export class ProductsService {
       }),
       map(() => void 0), // Преобразуем в Observable<void>
       catchError(error => {
-        console.error('Error deleting products by category:', error);
         throw error;
       })
     );
   }
 
-  // Комбинированный поиск и фильтрация (клиентская)
+  // Комбинированный поиск и фильтрация
   searchAndFilterProducts(searchTerm: string, category: string): Observable<Product[]> {
     return this.getAllProducts().pipe(
       map(products => {

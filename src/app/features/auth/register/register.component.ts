@@ -47,7 +47,6 @@ export class RegisterComponent implements OnInit {
   }
 
   goToLogin(): void {
-    console.log('goToLogin');
     this.router.navigate(['/auth/login']);
   }
 
@@ -63,11 +62,8 @@ export class RegisterComponent implements OnInit {
     };
 
     this.auth.register(payload.email, payload.password, payload.username).subscribe({
-      next: (newUser) => {
-        console.log('Пользователь зарегистрирован:', newUser);
-        // Показываем сообщение об успешной регистрации
+      next: () => {
         alert(`Регистрация прошла успешно! Теперь вы можете войти в систему используя email: ${payload.email}`);
-        // После регистрации перенаправляем на страницу входа
         this.router.navigate(['/auth/login']);
       },
       error: (err) => {
